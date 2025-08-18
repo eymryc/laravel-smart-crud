@@ -1,0 +1,16 @@
+<?php
+
+namespace {{ repositoryInterfaceNamespace }};
+
+use {{ modelNamespace }};
+use {{ filterDtoNamespace }};
+use Illuminate\Pagination\LengthAwarePaginator;
+
+interface {{ repositoryInterfaceClass }}
+{
+    public function getAll({{ filterDtoClass }} $filters): LengthAwarePaginator;
+    public function findById(int $id): ?{{ modelClass }};
+    public function create(array $data): {{ modelClass }};
+    public function update({{ modelClass }} $model, array $data): {{ modelClass }};
+    public function delete({{ modelClass }} $model): bool;
+}

@@ -1,0 +1,63 @@
+MIT License
+
+Copyright (c) 2025 Rouangni
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Additional Terms
+
+### Attribution
+
+While not required by the MIT License, attribution in your project's documentation
+or credits is appreciated:
+
+"This project uses Laravel Smart CRUD Generator by Rouangni"
+
+### Support
+
+This software is provided "as is" without warranty. However, we strive to provide
+support through:
+
+- GitHub Issues for bug reports
+- GitHub Discussions for questions and feature requests
+- Email support for enterprise users
+
+### Contributions
+
+By contributing to this project, you agree that your contributions will be
+licensed under the same MIT License.
+
+### Third-Party Licenses
+
+This software may include or depend on third-party packages that are subject
+to their own licenses. Please refer to the composer.json file and vendor
+directories for details on third-party licenses.
+
+### Trademarks
+
+"Laravel Smart CRUD" is a trademark of Rouangni. The Laravel name and logo
+are trademarks of Taylor Otwell and are used with permission.
+
+### Contact
+
+For licensing questions or commercial licensing options, please contact:
+Email: license@rouangni.com
+Website: https://rouangni.com

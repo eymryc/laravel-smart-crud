@@ -1,0 +1,24 @@
+<?php
+
+namespace {{ dtoNamespace }};
+
+class {{ dtoClass }}
+{
+    public function __construct(
+{{ constructorProperties }}
+    ) {}
+
+    public static function fromRequest(array $data): self
+    {
+        return new self(
+{{ fromRequestProperties }}
+        );
+    }
+
+    public function toArray(): array
+    {
+        return array_filter([
+{{ toArrayProperties }}
+        ], fn($value) => $value !== null);
+    }
+}

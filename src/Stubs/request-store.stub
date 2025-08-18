@@ -1,0 +1,32 @@
+<?php
+
+namespace {{ requestNamespace }};
+
+use Illuminate\Foundation\Http\FormRequest;
+use VotreNom\SmartCrud\Traits\ApiResponseTrait;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
+class {{ requestClass }} extends FormRequest
+{
+    use ApiResponseTrait;
+
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+{{ validationRules }}
+        ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(
+            $this->validationErrorResponse($validator->errors()->toArray())
+        );
+    }
+}
