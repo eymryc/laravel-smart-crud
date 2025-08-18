@@ -12,7 +12,7 @@ use {{ collectionNamespace }};
 use {{ createDtoNamespace }};
 use {{ updateDtoNamespace }};
 use {{ filterDtoNamespace }};
-use VotreNom\SmartCrud\Traits\ApiResponseTrait;
+use Rouangni\SmartCrud\Traits\ApiResponseTrait;
 use {{ exceptionNamespace }};
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
