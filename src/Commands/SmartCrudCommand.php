@@ -18,7 +18,7 @@ class SmartCrudCommand extends Command
                            {model : The model name}
                            {--api : Generate API CRUD}
                            {--web : Generate Web CRUD}
-                           {--version=V1 : API version (default: V1)}
+                           {--api-version=V1 : API version (default: V1)}
                            {--force : Overwrite existing files}
                            {--skip-common : Skip common files (Service, Repository, etc.)}
                            {--skip-routes : Skip route generation}
@@ -67,6 +67,9 @@ class SmartCrudCommand extends Command
             return $this->performDryRun($model, $options);
          }
 
+         // Create model and migration first
+         $this->createModelAndMigration($model);
+
          // Generate files
          $results = $this->generateFiles($model, $options);
 
@@ -85,6 +88,28 @@ class SmartCrudCommand extends Command
    }
 
    /**
+    * Create model and migration if they don't exist
+    */
+   protected function createModelAndMigration(string $model): void
+   {
+      $modelPath = app_path("Models/{$model}.php");
+
+      if (!file_exists($modelPath)) {
+         $this->info("📦 Creating model and migration for {$model}...");
+
+         // Create model with migration
+         $this->call('make:model', [
+            'name' => $model,
+            '--migration' => true,
+         ]);
+
+         $this->line("✓ Model and migration created");
+      } else {
+         $this->line("✓ Model {$model} already exists");
+      }
+   }
+
+   /**
     * Get processed options
     */
    protected function getOptions(): array
@@ -92,7 +117,7 @@ class SmartCrudCommand extends Command
       return [
          'api' => $this->option('api'),
          'web' => $this->option('web'),
-         'version' => $this->option('version') ?: config('smart-crud.default_api_version', 'V1'),
+         'api-version' => $this->option('api-version') ?: config('smart-crud.default_api_version', 'V1'),
          'force' => $this->option('force'),
          'skip_common' => $this->option('skip-common'),
          'skip_routes' => $this->option('skip-routes'),
@@ -110,7 +135,7 @@ class SmartCrudCommand extends Command
 
       $types = [];
       if ($options['api']) {
-         $types[] = "API ({$options['version']})";
+         $types[] = "API ({$options['api-version']})";
       }
       if ($options['web']) {
          $types[] = "Web";
@@ -127,6 +152,15 @@ class SmartCrudCommand extends Command
    {
       $this->warn('🔍 DRY RUN - No files will be created');
       $this->newLine();
+
+      // Check if model exists
+      $modelPath = app_path("Models/{$model}.php");
+      if (!file_exists($modelPath)) {
+         $this->line("<info>Model & Migration:</info>");
+         $this->line("  📄 app/Models/{$model}.php (will be created)");
+         $this->line("  📄 database/migrations/*_create_" . Str::snake(Str::plural($model)) . "_table.php (will be created)");
+         $this->newLine();
+      }
 
       $files = $this->getFilesToGenerate($model, $options);
 
@@ -164,7 +198,7 @@ class SmartCrudCommand extends Command
 
       // API files
       if ($options['api']) {
-         $version = $options['version'];
+         $version = $options['api-version'];
          $files["API Files ({$version})"] = [
             "app/Http/Controllers/Api/{$version}/{$model}/{$model}Controller.php",
             "app/Http/Requests/Api/{$version}/{$model}/Store{$model}Request.php",
@@ -174,7 +208,7 @@ class SmartCrudCommand extends Command
          ];
 
          if (!$options['skip_routes']) {
-            $files["API Files ({$version})"][] = "routes/api/{$version}/" . Str::kebab($model) . ".php";
+            $files["API Files ({$version})"][] = "routes/api.php (routes added)";
          }
       }
 
@@ -197,7 +231,7 @@ class SmartCrudCommand extends Command
          }
 
          if (!$options['skip_routes']) {
-            $files['Web Files'][] = "routes/web/" . Str::kebab($model) . ".php";
+            $files['Web Files'][] = "routes/web.php (routes added)";
          }
       }
 
@@ -223,7 +257,7 @@ class SmartCrudCommand extends Command
 
       // Generate API files
       if ($options['api']) {
-         $this->info("🔌 Generating API files ({$options['version']})...");
+         $this->info("🔌 Generating API files ({$options['api-version']})...");
          $results['api'] = $this->generateApiFiles($model, $options);
       }
 
@@ -353,9 +387,8 @@ class SmartCrudCommand extends Command
       ];
 
       if ($options['api']) {
-         $version = strtolower($options['version']);
-         $modelKebab = Str::kebab(Str::plural($model));
-         $steps[] = "3. API endpoints available at: /api/{$version}/{$modelKebab}";
+         $version = $options['api-version'];
+         $this->line("3. API routes available at: /api/{$version}/" . Str::kebab(Str::plural($model)));
       }
 
       if ($options['web']) {

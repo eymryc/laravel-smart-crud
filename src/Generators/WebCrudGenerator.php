@@ -7,6 +7,9 @@ use Rouangni\SmartCrud\Contracts\CrudGeneratorInterface;
 
 class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterface
 {
+    /**
+     * Generate Web CRUD file
+     */
     public function generate(string $model, string $type, array $options = []): bool
     {
         $method = 'generate' . $type;
@@ -18,6 +21,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         throw new \InvalidArgumentException("Unknown Web generator type: {$type}");
     }
 
+    /**
+     * Generate all Web CRUD files
+     */
     public function generateAll(string $model, array $options = []): array
     {
         $results = [];
@@ -38,7 +44,37 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         return $results;
     }
 
+    /**
+     * Generate Web Controller (interface implementation)
+     */
     public function generateController(string $model, array $options = []): bool
+    {
+        return $this->generateControllerFile($model, $options);
+    }
+
+    /**
+     * Generate Web requests
+     */
+    public function generateRequests(string $model, array $options = []): bool
+    {
+        $storeResult = $this->generateStoreRequest($model, $options);
+        $updateResult = $this->generateUpdateRequest($model, $options);
+        
+        return $storeResult && $updateResult;
+    }
+
+    /**
+     * Generate Web routes (interface implementation)
+     */
+    public function generateRoutes(string $model, array $options = []): bool
+    {
+        return $this->generateRoutesFile($model, $options);
+    }
+
+    /**
+     * Generate Web Controller
+     */
+    protected function generateControllerFile(string $model, array $options): bool
     {
         $namespace = $this->getNamespace($model, 'Controller', $options);
         $className = "{$model}Controller";
@@ -58,33 +94,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         );
     }
 
-    public function generateRequests(string $model, array $options = []): bool
-    {
-        $storeResult = $this->generateStoreRequest($model, $options);
-        $updateResult = $this->generateUpdateRequest($model, $options);
-        
-        return $storeResult && $updateResult;
-    }
-
-    public function generateRoutes(string $model, array $options = []): bool
-    {
-        $filePath = $this->basePath($this->config('paths.routes.web') . '/' . Str::kebab($model) . '.php');
-
-        $replacements = array_merge($this->getCommonReplacements($model, $options), [
-            'controller' => "{$model}Controller",
-            'controllerNamespace' => $this->getNamespace($model, 'Controller', $options),
-            'routePrefix' => $this->config('web.route_prefix', ''),
-            'middleware' => $this->formatMiddleware($this->config('web.middleware', ['web'])),
-        ]);
-
-        return $this->generateFromStub(
-            $this->config('stubs.web.routes'),
-            $filePath,
-            $replacements,
-            $options['force'] ?? false
-        );
-    }
-
+    /**
+     * Generate Web Store Request
+     */
     protected function generateStoreRequest(string $model, array $options): bool
     {
         $namespace = $this->getNamespace($model, 'StoreRequest', $options);
@@ -104,6 +116,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         );
     }
 
+    /**
+     * Generate Web Update Request
+     */
     protected function generateUpdateRequest(string $model, array $options): bool
     {
         $namespace = $this->getNamespace($model, 'UpdateRequest', $options);
@@ -123,6 +138,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         );
     }
 
+    /**
+     * Generate Web Views
+     */
     protected function generateViews(string $model, array $options): bool
     {
         $views = ['index', 'create', 'edit', 'show'];
@@ -138,6 +156,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         return $allSuccess;
     }
 
+    /**
+     * Generate individual view
+     */
     protected function generateView(string $model, string $viewType, array $options): bool
     {
         $modelPluralKebab = Str::kebab(Str::plural($model));
@@ -159,6 +180,119 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         );
     }
 
+    /**
+     * Generate Web Routes
+     */
+    protected function generateRoutesFile(string $model, array $options): bool
+    {
+        $webRoutesFile = $this->basePath('routes/web.php');
+
+        // Create routes/web.php if it doesn't exist
+        if (!$this->files->exists($webRoutesFile)) {
+            $this->createWebRoutesFile($webRoutesFile);
+        }
+
+        $routeContent = $this->generateWebRouteContent($model, $options);
+        
+        return $this->appendToRoutesFile($webRoutesFile, $routeContent, $model, 'Web');
+    }
+
+    /**
+     * Create initial Web routes file
+     */
+    protected function createWebRoutesFile(string $filePath): void
+    {
+        $content = "<?php\n\nuse Illuminate\Support\Facades\Route;\n\n";
+        $content .= "Route::get('/', function () {\n";
+        $content .= "    return view('welcome');\n";
+        $content .= "});\n\n";
+        $content .= "// ===== Smart CRUD Generated Routes =====\n";
+        
+        $this->files->put($filePath, $content);
+    }
+
+    /**
+     * Generate Web route content for a model
+     */
+    protected function generateWebRouteContent(string $model, array $options): string
+    {
+        $replacements = array_merge($this->getCommonReplacements($model, $options), [
+            'controller' => "{$model}Controller",
+            'controllerNamespace' => $this->getNamespace($model, 'Controller', $options),
+            'routePrefix' => $this->config('web.route_prefix', ''),
+            'middleware' => $this->formatMiddleware($this->config('web.middleware', ['web'])),
+        ]);
+
+        $stubContent = $this->files->get($this->getStubPath($this->config('stubs.web.routes')));
+        return $this->replacePlaceholders($stubContent, $replacements);
+    }
+
+    /**
+     * Append route content to existing routes file
+     */
+    protected function appendToRoutesFile(string $filePath, string $routeContent, string $model, string $type): bool
+    {
+        $existingContent = $this->files->get($filePath);
+        
+        // Check if routes for this model already exist
+        $modelKebab = Str::kebab(Str::plural($model));
+        if (strpos($existingContent, "'{$modelKebab}'") !== false || 
+            strpos($existingContent, "\"{$modelKebab}\"") !== false) {
+            $this->info("Routes for {$model} already exist in {$type} routes file");
+            return false;
+        }
+
+        $newContent = $this->insertRouteContent($existingContent, $routeContent, $model, $type);
+        
+        $this->files->put($filePath, $newContent);
+        $this->info("Added {$type} routes for {$model}");
+        
+        return true;
+    }
+
+    /**
+     * Insert route content at the appropriate place
+     */
+    protected function insertRouteContent(string $existingContent, string $routeContent, string $model, string $type): string
+    {
+        $lines = explode("\n", $existingContent);
+        $newLines = [];
+        $routeContentAdded = false;
+        $importsSection = true;
+        
+        foreach ($lines as $line) {
+            $newLines[] = $line;
+            
+            // Add import after existing use statements
+            if ($importsSection && trim($line) && 
+                !str_starts_with(trim($line), 'use ') && 
+                !str_starts_with(trim($line), '<?php') &&
+                !empty(trim($line))) {
+                
+                // Add the import for this controller
+                $controllerImport = "use " . $this->getNamespace($model, 'Controller', []) . "\\{$model}Controller;";
+                array_splice($newLines, -1, 0, [$controllerImport]);
+                $importsSection = false;
+            }
+        }
+        
+        // Add the route at the end
+        $routeLines = explode("\n", $routeContent);
+        
+        // Filter out the import line from route content since we added it at the top
+        $filteredRouteLines = array_filter($routeLines, function($line) {
+            return !str_starts_with(trim($line), 'use ') && !empty(trim($line));
+        });
+        
+        $newLines[] = "";
+        $newLines = array_merge($newLines, $filteredRouteLines);
+        
+        return implode("\n", $newLines);
+    }
+
+    /**
+     * Format middleware array for route file
+     */
     protected function formatMiddleware(array $middleware): string
     {
         if (empty($middleware)) {
@@ -173,6 +307,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         return "->middleware({$formatted})";
     }
 
+    /**
+     * Get file path for generated class
+     */
     public function getFilePath(string $model, string $type, array $options = []): string
     {
         return match ($type) {
@@ -189,6 +326,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         };
     }
 
+    /**
+     * Get namespace for generated class
+     */
     public function getNamespace(string $model, string $type, array $options = []): string
     {
         return match ($type) {
@@ -198,6 +338,9 @@ class WebCrudGenerator extends AbstractGenerator implements CrudGeneratorInterfa
         };
     }
 
+    /**
+     * Get available types
+     */
     public function getAvailableTypes(): array
     {
         return ['Controller', 'StoreRequest', 'UpdateRequest', 'Views', 'Routes'];
