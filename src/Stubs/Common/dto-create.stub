@@ -1,0 +1,104 @@
+<?php
+
+namespace {{ namespace }};
+
+class {{ class }}
+{
+    public function __construct(
+        protected array $data
+    ) {
+        $this->validateData();
+    }
+
+    /**
+     * Convert DTO to array
+     */
+    public function toArray(): array
+    {
+        return [
+            // TODO: Map your fields here
+            // Example:
+            // 'name' => $this->getName(),
+            // 'email' => $this->getEmail(),
+            // 'description' => $this->getDescription(),
+            // 'status' => $this->getStatus() ?? 'active',
+            // 'slug' => $this->getSlug(),
+        ];
+    }
+
+    /**
+     * Validate input data
+     */
+    protected function validateData(): void
+    {
+        // TODO: Add your validation logic here
+        // Example:
+        // if (empty($this->data['name'])) {
+        //     throw new \InvalidArgumentException('Name is required');
+        // }
+        
+        // if (!filter_var($this->data['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+        //     throw new \InvalidArgumentException('Valid email is required');
+        // }
+    }
+
+    // TODO: Add your getter methods here
+    // Example:
+    
+    // public function getName(): string
+    // {
+    //     return $this->data['name'];
+    // }
+
+    // public function getEmail(): string
+    // {
+    //     return $this->data['email'];
+    // }
+
+    // public function getDescription(): ?string
+    // {
+    //     return $this->data['description'] ?? null;
+    // }
+
+    // public function getStatus(): ?string
+    // {
+    //     return $this->data['status'] ?? null;
+    // }
+
+    // public function getSlug(): string
+    // {
+    //     return $this->data['slug'] ?? \Illuminate\Support\Str::slug($this->getName());
+    // }
+
+    /**
+     * Create from array
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self($data);
+    }
+
+    /**
+     * Get raw data
+     */
+    public function getRawData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Check if field exists
+     */
+    public function has(string $field): bool
+    {
+        return array_key_exists($field, $this->data);
+    }
+
+    /**
+     * Get field value
+     */
+    public function get(string $field, $default = null)
+    {
+        return $this->data[$field] ?? $default;
+    }
+}

@@ -1,0 +1,168 @@
+<?php
+
+namespace {{ namespace }};
+
+class {{ class }}
+{
+    public readonly bool $paginate;
+    public readonly ?int $perPage;
+    public readonly ?string $sortBy;
+    public readonly string $sortDirection;
+    public readonly ?array $relations;
+
+    public function __construct(
+        protected array $data
+    ) {
+        // Pagination
+        $this->paginate = filter_var($this->data['paginate'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $this->perPage = isset($this->data['per_page']) ? (int) $this->data['per_page'] : null;
+
+        // Sorting
+        $this->sortBy = $this->data['sort_by'] ?? null;
+        $this->sortDirection = in_array($this->data['sort_direction'] ?? 'asc', ['asc', 'desc']) 
+            ? $this->data['sort_direction'] 
+            : 'asc';
+
+        // Relations
+        $this->relations = $this->parseRelations($this->data['with'] ?? null);
+    }
+
+    /**
+     * Convert DTO to array for repository filtering
+     */
+    public function toArray(): array
+    {
+        $filters = [];
+
+        // TODO: Add your filter fields here
+        // Example:
+        // if ($this->has('name')) {
+        //     $filters['name_like'] = $this->data['name'];
+        // }
+
+        // if ($this->has('email')) {
+        //     $filters['email'] = $this->data['email'];
+        // }
+
+        // if ($this->has('status')) {
+        //     $filters['status'] = $this->data['status'];
+        // }
+
+        // // Date range filters
+        // if ($this->has('created_from')) {
+        //     $filters['created_at_from'] = $this->data['created_from'];
+        // }
+
+        // if ($this->has('created_to')) {
+        //     $filters['created_at_to'] = $this->data['created_to'];
+        // }
+
+        // // Multiple values filter
+        // if ($this->has('categories')) {
+        //     $filters['category_id'] = $this->parseArrayFilter($this->data['categories']);
+        // }
+
+        // Add sorting info
+        $filters['sort_by'] = $this->sortBy;
+        $filters['sort_direction'] = $this->sortDirection;
+
+        return array_filter($filters, fn($value) => !is_null($value));
+    }
+
+    /**
+     * Parse relations from string or array
+     */
+    protected function parseRelations(?string $relations): ?array
+    {
+        if (empty($relations)) {
+            return null;
+        }
+
+        $relationsList = explode(',', $relations);
+        $allowedRelations = $this->getAllowedRelations();
+
+        return array_intersect(
+            array_map('trim', $relationsList),
+            $allowedRelations
+        );
+    }
+
+    /**
+     * Get allowed relations for this model
+     */
+    protected function getAllowedRelations(): array
+    {
+        return [
+            // TODO: Add your allowed relations here
+            // Example:
+            // 'category',
+            // 'tags',
+            // 'user',
+            // 'comments',
+        ];
+    }
+
+    /**
+     * Parse array filter from string or array
+     */
+    protected function parseArrayFilter($value): ?array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return array_map('trim', explode(',', $value));
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if field exists
+     */
+    public function has(string $field): bool
+    {
+        return array_key_exists($field, $this->data) && !empty($this->data[$field]);
+    }
+
+    /**
+     * Get field value
+     */
+    public function get(string $field, $default = null)
+    {
+        return $this->data[$field] ?? $default;
+    }
+
+    /**
+     * Get search query
+     */
+    public function getSearch(): ?string
+    {
+        return $this->data['search'] ?? null;
+    }
+
+    /**
+     * Check if search is present
+     */
+    public function hasSearch(): bool
+    {
+        return !empty($this->data['search']);
+    }
+
+    /**
+     * Get raw filter data
+     */
+    public function getRawData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Create from request
+     */
+    public static function fromRequest(\Illuminate\Http\Request $request): self
+    {
+        return new self($request->all());
+    }
+}

@@ -1,0 +1,159 @@
+@extends('{{ layout }}')
+
+@section('title', '{{ modelPluralTitle }}')
+
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ modelPluralTitle }}</h1>
+                <a href="{{ route('{{ route }}.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouveau {{ modelTitle }}
+                </a>
+            </div>
+
+            {{-- Alerts --}}
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            {{-- Filters --}}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ route('{{ route }}.index') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="search" class="form-label">Rechercher</label>
+                                    <input type="text" class="form-control" id="search" name="search" 
+                                           value="{{ request('search') }}" placeholder="Rechercher...">
+                                </div>
+                            </div>
+                            {{-- TODO: Add more filter fields --}}
+                            {{-- 
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Statut</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="">Tous les statuts</option>
+                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Actif</option>
+                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactif</option>
+                                    </select>
+                                </div>
+                            </div>
+                            --}}
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="sort_by" class="form-label">Trier par</label>
+                                    <select class="form-control" id="sort_by" name="sort_by">
+                                        <option value="created_at" {{ request('sort_by', 'created_at') == 'created_at' ? 'selected' : '' }}>Date de création</option>
+                                        <option value="updated_at" {{ request('sort_by') == 'updated_at' ? 'selected' : '' }}>Date de modification</option>
+                                        {{-- TODO: Add more sort options --}}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-search"></i> Filtrer
+                            </button>
+                            <a href="{{ route('{{ route }}.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Réinitialiser
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Table --}}
+            <div class="card">
+                <div class="card-body">
+                    @if(${{ modelPluralVariable }}->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        {{-- TODO: Add your table headers --}}
+                                        {{-- <th>Nom</th> --}}
+                                        {{-- <th>Email</th> --}}
+                                        {{-- <th>Statut</th> --}}
+                                        <th>Créé le</th>
+                                        <th>Modifié le</th>
+                                        <th width="200">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(${{ modelPluralVariable }} as ${{ modelVariable }})
+                                        <tr>
+                                            <td>{{ ${{ modelVariable }}->id }}</td>
+                                            {{-- TODO: Add your table data --}}
+                                            {{-- <td>{{ ${{ modelVariable }}->name }}</td> --}}
+                                            {{-- <td>{{ ${{ modelVariable }}->email }}</td> --}}
+                                            {{-- <td>
+                                                <span class="badge bg-{{ ${{ modelVariable }}->status === 'active' ? 'success' : 'secondary' }}">
+                                                    {{ ucfirst(${{ modelVariable }}->status) }}
+                                                </span>
+                                            </td> --}}
+                                            <td>{{ ${{ modelVariable }}->created_at?->format('d/m/Y H:i') }}</td>
+                                            <td>{{ ${{ modelVariable }}->updated_at?->format('d/m/Y H:i') }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ route('{{ route }}.show', ${{ modelVariable }}) }}" 
+                                                       class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route('{{ route }}.edit', ${{ modelVariable }}) }}" 
+                                                       class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <form method="POST" action="{{ route('{{ route }}.destroy', ${{ modelVariable }}) }}" 
+                                                          style="display: inline-block;"
+                                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce {{ modelLower }} ?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Pagination --}}
+                        @if(method_exists(${{ modelPluralVariable }}, 'links'))
+                            <div class="d-flex justify-content-center">
+                                {{ ${{ modelPluralVariable }}->appends(request()->query())->links() }}
+                            </div>
+                        @endif
+                    @else
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucun {{ modelLower }} trouvé</h5>
+                            <p class="text-muted">Commencez par créer votre premier {{ modelLower }}.</p>
+                            <a href="{{ route('{{ route }}.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Créer un {{ modelLower }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

@@ -1,0 +1,175 @@
+<?php
+
+namespace {{ namespace }};
+
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class {{ class }} extends Exception
+{
+    /**
+     * Create a new {{ modelLower }} not found exception
+     */
+    public static function notFound(int $id): self
+    {
+        return new self("{{ modelTitle }} with ID {$id} not found.", 404);
+    }
+
+    /**
+     * Create a new {{ modelLower }} creation failed exception
+     */
+    public static function creationFailed(string $reason = ''): self
+    {
+        $message = "Failed to create {{ modelLower }}.";
+        
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
+
+        return new self($message, 422);
+    }
+
+    /**
+     * Create a new {{ modelLower }} update failed exception
+     */
+    public static function updateFailed(int $id, string $reason = ''): self
+    {
+        $message = "Failed to update {{ modelLower }} with ID {$id}.";
+        
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
+
+        return new self($message, 422);
+    }
+
+    /**
+     * Create a new {{ modelLower }} deletion failed exception
+     */
+    public static function deletionFailed(int $id, string $reason = ''): self
+    {
+        $message = "Failed to delete {{ modelLower }} with ID {$id}.";
+        
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
+
+        return new self($message, 422);
+    }
+
+    /**
+     * Create a new {{ modelLower }} already exists exception
+     */
+    public static function alreadyExists(string $field, $value): self
+    {
+        return new self("{{ modelTitle }} with {$field} '{$value}' already exists.", 409);
+    }
+
+    /**
+     * Create a new {{ modelLower }} validation failed exception
+     */
+    public static function validationFailed(array $errors): self
+    {
+        $exception = new self("{{ modelTitle }} validation failed.", 422);
+        $exception->errors = $errors;
+        
+        return $exception;
+    }
+
+    /**
+     * Create a new {{ modelLower }} unauthorized exception
+     */
+    public static function unauthorized(string $action = 'access'): self
+    {
+        return new self("Unauthorized to {$action} {{ modelLower }}.", 403);
+    }
+
+    /**
+     * Create a new {{ modelLower }} forbidden exception
+     */
+    public static function forbidden(string $reason = ''): self
+    {
+        $message = "Access to {{ modelLower }} is forbidden.";
+        
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
+
+        return new self($message, 403);
+    }
+
+    /**
+     * Create a new {{ modelLower }} conflict exception
+     */
+    public static function conflict(string $reason): self
+    {
+        return new self("{{ modelTitle }} conflict: {$reason}", 409);
+    }
+
+    /**
+     * Create a new {{ modelLower }} service unavailable exception
+     */
+    public static function serviceUnavailable(): self
+    {
+        return new self("{{ modelTitle }} service is temporarily unavailable.", 503);
+    }
+
+    /**
+     * Validation errors
+     */
+    protected array $errors = [];
+
+    /**
+     * Get validation errors
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Set validation errors
+     */
+    public function setErrors(array $errors): self
+    {
+        $this->errors = $errors;
+        return $this;
+    }
+
+    /**
+     * Render the exception as an HTTP response
+     */
+    public function render(Request $request): JsonResponse
+    {
+        $response = [
+            'success' => false,
+            'message' => $this->getMessage(),
+            'error_code' => $this->getCode(),
+        ];
+
+        if (!empty($this->errors)) {
+            $response['errors'] = $this->errors;
+        }
+
+        if (config('app.debug')) {
+            $response['debug'] = [
+                'file' => $this->getFile(),
+                'line' => $this->getLine(),
+                'trace' => $this->getTraceAsString(),
+            ];
+        }
+
+        return response()->json($response, $this->getCode() ?: 500);
+    }
+
+    /**
+     * Report the exception
+     */
+    public function report(): bool
+    {
+        // Only report server errors and unexpected exceptions
+        return $this->getCode() >= 500;
+    }
+
+}

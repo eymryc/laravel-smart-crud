@@ -1,0 +1,154 @@
+@extends('{{ layout }}')
+
+@section('title', 'Modifier {{ modelTitle }}')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Modifier {{ modelTitle }} #{{ ${{ modelVariable }}->id }}</h4>
+                        <div class="btn-group">
+                            <a href="{{ route('{{ route }}.show', ${{ modelVariable }}) }}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            <a href="{{ route('{{ route }}.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {{-- Alerts --}}
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('{{ route }}.update', ${{ modelVariable }}) }}" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        {{-- TODO: Add your form fields here with current values --}}
+                        {{-- Example fields: --}}
+                        
+                        {{-- 
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control @error('name') is-invalid @enderror" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name', ${{ modelVariable }}->name) }}" 
+                                   placeholder="Entrez le nom du {{ modelLower }}"
+                                   required>
+                            @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" 
+                                   class="form-control @error('email') is-invalid @enderror" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ old('email', ${{ modelVariable }}->email) }}" 
+                                   placeholder="Entrez l'adresse email"
+                                   required>
+                            @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3" 
+                                      placeholder="Entrez une description (optionnel)">{{ old('description', ${{ modelVariable }}->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Statut <span class="text-danger">*</span></label>
+                            <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
+                                <option value="">Sélectionnez un statut</option>
+                                <option value="active" {{ old('status', ${{ modelVariable }}->status) == 'active' ? 'selected' : '' }}>Actif</option>
+                                <option value="inactive" {{ old('status', ${{ modelVariable }}->status) == 'inactive' ? 'selected' : '' }}>Inactif</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            @if(${{ modelVariable }}->image)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . ${{ modelVariable }}->image) }}" 
+                                         alt="Image actuelle" 
+                                         class="img-thumbnail" 
+                                         style="max-width: 200px;">
+                                    <div class="form-text">Image actuelle</div>
+                                </div>
+                            @endif
+                            <input type="file" 
+                                   class="form-control @error('image') is-invalid @enderror" 
+                                   id="image" 
+                                   name="image" 
+                                   accept="image/*">
+                            @error('image')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            <div class="form-text">Laissez vide pour conserver l'image actuelle. Formats acceptés: JPG, PNG, GIF. Taille maximale: 2MB.</div>
+                        </div>
+                        --}}
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>TODO:</strong> Ajoutez vos champs de formulaire dans ce template.
+                            Les valeurs actuelles du {{ modelLower }} doivent être pré-remplies.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">
+                                    Créé le: {{ ${{ modelVariable }}->created_at?->format('d/m/Y à H:i') }}<br>
+                                    Modifié le: {{ ${{ modelVariable }}->updated_at?->format('d/m/Y à H:i') }}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('{{ route }}.show', ${{ modelVariable }}) }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Mettre à jour
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

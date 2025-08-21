@@ -1,0 +1,75 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\{{ model }};
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+interface {{ class }}
+{
+    /**
+     * Get all {{ modelPluralLower }} with optional filtering
+     */
+    public function all(array $filters = [], array $relations = []): Collection;
+
+    /**
+     * Get paginated {{ modelPluralLower }}
+     */
+    public function paginate(int $perPage = 15, array $filters = [], array $relations = []): LengthAwarePaginator;
+
+    /**
+     * Find {{ modelLower }} by ID
+     */
+    public function find(int $id, array $relations = []): ?{{ model }};
+
+    /**
+     * Find {{ modelLower }} by ID or fail
+     */
+    public function findOrFail(int $id, array $relations = []): {{ model }};
+
+    /**
+     * Create a new {{ modelLower }}
+     */
+    public function create(array $data): {{ model }};
+
+    /**
+     * Update existing {{ modelLower }}
+     */
+    public function update({{ model }} ${{ modelVariable }}, array $data): {{ model }};
+
+    /**
+     * Delete {{ modelLower }}
+     */
+    public function delete({{ model }} ${{ modelVariable }}): bool;
+
+    /**
+     * Find {{ modelPluralLower }} by specific field
+     */
+    public function findBy(string $field, $value, array $relations = []): Collection;
+
+    /**
+     * Find first {{ modelLower }} by specific field
+     */
+    public function findOneBy(string $field, $value, array $relations = []): ?{{ model }};
+
+    /**
+     * Count {{ modelPluralLower }} with optional filtering
+     */
+    public function count(array $filters = []): int;
+
+    /**
+     * Check if {{ modelLower }} exists
+     */
+    public function exists(array $criteria): bool;
+
+    /**
+     * Get first {{ modelLower }} or create
+     */
+    public function firstOrCreate(array $criteria, array $data = []): {{ model }};
+
+    /**
+     * Update or create {{ modelLower }}
+     */
+    public function updateOrCreate(array $criteria, array $data): {{ model }};
+}

@@ -1,0 +1,64 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class {{ class }} extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            
+            // TODO: Add your resource fields here
+            // Example:
+            // 'name' => $this->name,
+            // 'email' => $this->email,
+            // 'description' => $this->description,
+            // 'status' => $this->status,
+            // 'slug' => $this->slug,
+            
+            // Timestamps
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+            
+            // TODO: Add relationships when needed
+            // Example:
+            // 'category' => new CategoryResource($this->whenLoaded('category')),
+            // 'tags' => TagResource::collection($this->whenLoaded('tags')),
+            
+            // TODO: Add computed fields when needed
+            // Example:
+            // 'full_name' => $this->first_name . ' ' . $this->last_name,
+            // 'is_active' => $this->status === 'active',
+            
+            // TODO: Add conditional fields
+            // Example:
+            // $this->mergeWhen($request->user()?->isAdmin(), [
+            //     'internal_notes' => $this->internal_notes,
+            // ]),
+        ];
+    }
+
+    /**
+     * Get additional data that should be returned with the resource array.
+     *
+     * @return array<string, mixed>
+     */
+    public function with(Request $request): array
+    {
+        return [
+            'meta' => [
+                'version' => '1.0',
+                'timestamp' => now()->toISOString(),
+            ],
+        ];
+    }
+}

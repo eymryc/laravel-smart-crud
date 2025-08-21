@@ -1,0 +1,141 @@
+<?php
+
+namespace {{ namespace }};
+
+class {{ class }}
+{
+    public function __construct(
+        protected array $data
+    ) {
+        $this->validateData();
+    }
+
+    /**
+     * Convert DTO to array (only fields that are provided)
+     */
+    public function toArray(): array
+    {
+        $result = [];
+
+        // TODO: Map your fields here (only if present in data)
+        // Example:
+        // if ($this->has('name')) {
+        //     $result['name'] = $this->getName();
+        // }
+
+        // if ($this->has('email')) {
+        //     $result['email'] = $this->getEmail();
+        // }
+
+        // if ($this->has('description')) {
+        //     $result['description'] = $this->getDescription();
+        // }
+
+        // if ($this->has('status')) {
+        //     $result['status'] = $this->getStatus();
+        // }
+
+        // // Auto-update slug if name is being updated
+        // if ($this->has('name')) {
+        //     $result['slug'] = $this->getSlug();
+        // }
+
+        return $result;
+    }
+
+    /**
+     * Validate input data
+     */
+    protected function validateData(): void
+    {
+        // TODO: Add your validation logic here
+        // Example:
+        // if ($this->has('name') && empty($this->data['name'])) {
+        //     throw new \InvalidArgumentException('Name cannot be empty');
+        // }
+        
+        // if ($this->has('email') && !filter_var($this->data['email'], FILTER_VALIDATE_EMAIL)) {
+        //     throw new \InvalidArgumentException('Valid email is required');
+        // }
+
+        // if ($this->has('status') && !in_array($this->data['status'], ['active', 'inactive'])) {
+        //     throw new \InvalidArgumentException('Status must be active or inactive');
+        // }
+    }
+
+    // TODO: Add your getter methods here
+    // Example:
+    
+    // public function getName(): ?string
+    // {
+    //     return $this->data['name'] ?? null;
+    // }
+
+    // public function getEmail(): ?string
+    // {
+    //     return $this->data['email'] ?? null;
+    // }
+
+    // public function getDescription(): ?string
+    // {
+    //     return $this->data['description'] ?? null;
+    // }
+
+    // public function getStatus(): ?string
+    // {
+    //     return $this->data['status'] ?? null;
+    // }
+
+    // public function getSlug(): ?string
+    // {
+    //     return $this->data['slug'] ?? ($this->has('name') ? \Illuminate\Support\Str::slug($this->getName()) : null);
+    // }
+
+    /**
+     * Create from array
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self($data);
+    }
+
+    /**
+     * Get raw data
+     */
+    public function getRawData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Check if field exists
+     */
+    public function has(string $field): bool
+    {
+        return array_key_exists($field, $this->data);
+    }
+
+    /**
+     * Get field value
+     */
+    public function get(string $field, $default = null)
+    {
+        return $this->data[$field] ?? $default;
+    }
+
+    /**
+     * Check if any data is provided for update
+     */
+    public function hasAnyData(): bool
+    {
+        return !empty($this->data);
+    }
+
+    /**
+     * Get only the fields that are provided
+     */
+    public function getProvidedFields(): array
+    {
+        return array_keys($this->data);
+    }
+}

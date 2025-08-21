@@ -1,0 +1,151 @@
+@extends('{{ layout }}')
+
+@section('title', 'Créer un {{ modelTitle }}')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Créer un nouveau {{ modelTitle }}</h4>
+                        <a href="{{ route('{{ route }}.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {{-- Alerts --}}
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('{{ route }}.store') }}" enctype="multipart/form-data">
+                        @csrf
+
+                        {{-- TODO: Add your form fields here --}}
+                        {{-- Example fields: --}}
+                        
+                        {{-- 
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control @error('name') is-invalid @enderror" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name') }}" 
+                                   placeholder="Entrez le nom du {{ modelLower }}"
+                                   required>
+                            @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" 
+                                   class="form-control @error('email') is-invalid @enderror" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ old('email') }}" 
+                                   placeholder="Entrez l'adresse email"
+                                   required>
+                            @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3" 
+                                      placeholder="Entrez une description (optionnel)">{{ old('description') }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Statut <span class="text-danger">*</span></label>
+                            <select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
+                                <option value="">Sélectionnez un statut</option>
+                                <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Actif</option>
+                                <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactif</option>
+                            </select>
+                            @error('status')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            <input type="file" 
+                                   class="form-control @error('image') is-invalid @enderror" 
+                                   id="image" 
+                                   name="image" 
+                                   accept="image/*">
+                            @error('image')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            <div class="form-text">Formats acceptés: JPG, PNG, GIF. Taille maximale: 2MB.</div>
+                        </div>
+                        --}}
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>TODO:</strong> Ajoutez vos champs de formulaire dans ce template.
+                            Les champs marqués d'un <span class="text-danger">*</span> sont obligatoires.
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('{{ route }}.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Créer le {{ modelLower }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // TODO: Add your custom JavaScript here
+    // Example: Image preview functionality
+    /*
+    document.getElementById('image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Show preview
+                console.log('Image selected:', file.name);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+    */
+</script>
+@endpush

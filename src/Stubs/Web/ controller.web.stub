@@ -1,0 +1,123 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Http\Controllers\Controller;
+use App\Models\{{ model }};
+use App\Services\{{ model }}\{{ model }}Service;
+use App\Http\Requests\Web\{{ model }}\Store{{ model }}Request;
+use App\Http\Requests\Web\{{ model }}\Update{{ model }}Request;
+use App\DTOs\{{ model }}\{{ model }}FilterDTO;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+
+class {{ class }} extends Controller
+{
+    public function __construct(
+        protected {{ model }}Service ${{ modelVariable }}Service
+    ) {}
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): View
+    {
+        try {
+            $filterDTO = new {{ model }}FilterDTO($request->all());
+            ${{ modelPluralVariable }} = $this->{{ modelVariable }}Service->getAll($filterDTO);
+
+            return view('{{ modelPluralKebab }}.index', compact('{{ modelPluralVariable }}'));
+        } catch (\Exception $e) {
+            return view('{{ modelPluralKebab }}.index')
+                ->with('error', 'Failed to load {{ modelPluralLower }}')
+                ->with('{{ modelPluralVariable }}', collect());
+        }
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): View
+    {
+        return view('{{ modelPluralKebab }}.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Store{{ model }}Request $request): RedirectResponse
+    {
+        try {
+            ${{ modelVariable }} = $this->{{ modelVariable }}Service->create($request->validated());
+
+            return redirect()
+                ->route('{{ modelPluralKebab }}.show', ${{ modelVariable }})
+                ->with('success', '{{ modelTitle }} created successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create {{ modelLower }}. Please try again.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show({{ model }} ${{ modelVariable }}): View
+    {
+        try {
+            return view('{{ modelPluralKebab }}.show', compact('{{ modelVariable }}'));
+        } catch (\Exception $e) {
+            return view('{{ modelPluralKebab }}.show')
+                ->with('error', 'Failed to load {{ modelLower }}')
+                ->with('{{ modelVariable }}', new {{ model }}());
+        }
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit({{ model }} ${{ modelVariable }}): View
+    {
+        return view('{{ modelPluralKebab }}.edit', compact('{{ modelVariable }}'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Update{{ model }}Request $request, {{ model }} ${{ modelVariable }}): RedirectResponse
+    {
+        try {
+            $updated{{ model }} = $this->{{ modelVariable }}Service->update(${{ modelVariable }}, $request->validated());
+
+            return redirect()
+                ->route('{{ modelPluralKebab }}.show', $updated{{ model }})
+                ->with('success', '{{ modelTitle }} updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to update {{ modelLower }}. Please try again.');
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy({{ model }} ${{ modelVariable }}): RedirectResponse
+    {
+        try {
+            $this->{{ modelVariable }}Service->delete(${{ modelVariable }});
+
+            return redirect()
+                ->route('{{ modelPluralKebab }}.index')
+                ->with('success', '{{ modelTitle }} deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete {{ modelLower }}. Please try again.');
+        }
+    }
+}
