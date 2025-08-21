@@ -1,234 +1,233 @@
 <?php
-// src/Traits/BaseRepositoryTrait.php
 
-namespace VotreNom\SmartCrud\Traits;
+namespace Rouangni\SmartCrud\Traits;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Carbon;
 
 trait BaseRepositoryTrait
 {
     /**
-     * Find model by multiple conditions
+     * Get all records with optional filtering
      */
-    public function findWhere(array $conditions): Collection
+    public function all(array $filters = [], array $relations = []): Collection
     {
         $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
-            if (is_array($value)) {
-                $query->whereIn($field, $value);
-            } else {
-                $query->where($field, $value);
-            }
+
+        if (!empty($relations)) {
+            $query->with($relations);
         }
-        
+
+        $this->applyFilters($query, $filters);
+
         return $query->get();
     }
 
     /**
-     * Find first model by conditions
+     * Get paginated records
      */
-    public function findFirstWhere(array $conditions): ?Model
-    {
+    public function paginate(
+        int $perPage = 15, 
+        array $filters = [], 
+        array $relations = []
+    ): LengthAwarePaginator {
         $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
-            $query->where($field, $value);
+
+        if (!empty($relations)) {
+            $query->with($relations);
         }
-        
-        return $query->first();
+
+        $this->applyFilters($query, $filters);
+
+        return $query->paginate($perPage);
     }
 
     /**
-     * Count records by conditions
+     * Find record by ID
      */
-    public function countWhere(array $conditions): int
+    public function find(int $id, array $relations = []): ?Model
     {
         $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
-            if (is_array($value)) {
-                $query->whereIn($field, $value);
-            } else {
-                $query->where($field, $value);
-            }
+
+        if (!empty($relations)) {
+            $query->with($relations);
         }
+
+        return $query->find($id);
+    }
+
+    /**
+     * Find record by ID or fail
+     */
+    public function findOrFail(int $id, array $relations = []): Model
+    {
+        $query = $this->model->newQuery();
+
+        if (!empty($relations)) {
+            $query->with($relations);
+        }
+
+        return $query->findOrFail($id);
+    }
+
+    /**
+     * Create a new record
+     */
+    public function create(array $data): Model
+    {
+        return $this->model->create($data);
+    }
+
+    /**
+     * Update a record
+     */
+    public function update(Model $model, array $data): Model
+    {
+        $model->update($data);
+        return $model->fresh();
+    }
+
+    /**
+     * Delete a record
+     */
+    public function delete(Model $model): bool
+    {
+        return $model->delete();
+    }
+
+    /**
+     * Find records by specific field
+     */
+    public function findBy(string $field, $value, array $relations = []): Collection
+    {
+        $query = $this->model->newQuery();
+
+        if (!empty($relations)) {
+            $query->with($relations);
+        }
+
+        return $query->where($field, $value)->get();
+    }
+
+    /**
+     * Find first record by specific field
+     */
+    public function findOneBy(string $field, $value, array $relations = []): ?Model
+    {
+        $query = $this->model->newQuery();
+
+        if (!empty($relations)) {
+            $query->with($relations);
+        }
+
+        return $query->where($field, $value)->first();
+    }
+
+    /**
+     * Count records with optional filtering
+     */
+    public function count(array $filters = []): int
+    {
+        $query = $this->model->newQuery();
+        $this->applyFilters($query, $filters);
         
         return $query->count();
     }
 
     /**
-     * Search in multiple fields
+     * Check if record exists
      */
-    public function search(string $query, array $fields): Collection
+    public function exists(array $criteria): bool
     {
-        $queryBuilder = $this->model->newQuery();
-        
-        $queryBuilder->where(function ($q) use ($query, $fields) {
-            foreach ($fields as $field) {
-                $q->orWhere($field, 'like', "%{$query}%");
+        return $this->model->where($criteria)->exists();
+    }
+
+    /**
+     * Get first record or create
+     */
+    public function firstOrCreate(array $criteria, array $data = []): Model
+    {
+        return $this->model->firstOrCreate($criteria, $data);
+    }
+
+    /**
+     * Update or create record
+     */
+    public function updateOrCreate(array $criteria, array $data): Model
+    {
+        return $this->model->updateOrCreate($criteria, $data);
+    }
+
+    /**
+     * Apply filters to query
+     */
+    protected function applyFilters(Builder $query, array $filters): void
+    {
+        foreach ($filters as $field => $value) {
+            if (is_null($value)) {
+                continue;
             }
-        });
-        
-        return $queryBuilder->get();
-    }
 
-    /**
-     * Get latest records
-     */
-    public function latest(int $limit = 10): Collection
-    {
-        return $this->model->latest()->limit($limit)->get();
-    }
-
-    /**
-     * Get oldest records
-     */
-    public function oldest(int $limit = 10): Collection
-    {
-        return $this->model->oldest()->limit($limit)->get();
-    }
-
-    /**
-     * Bulk insert with timestamps
-     */
-    public function bulkInsert(array $data): bool
-    {
-        $now = Carbon::now();
-        
-        $dataWithTimestamps = collect($data)->map(function ($item) use ($now) {
-            return array_merge($item, [
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        })->toArray();
-        
-        return $this->model->insert($dataWithTimestamps);
-    }
-
-    /**
-     * Get random records
-     */
-    public function random(int $limit = 5): Collection
-    {
-        return $this->model->inRandomOrder()->limit($limit)->get();
-    }
-
-    /**
-     * Paginate with custom query
-     */
-    public function paginateWhere(array $conditions, int $perPage = 15): LengthAwarePaginator
-    {
-        $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
+            // Handle array values for IN queries
             if (is_array($value)) {
                 $query->whereIn($field, $value);
-            } else {
-                $query->where($field, $value);
+                continue;
             }
-        }
-        
-        return $query->paginate($perPage);
-    }
 
-    /**
-     * Get distinct values for a column
-     */
-    public function getDistinct(string $column): Collection
-    {
-        return $this->model->distinct()->pluck($column);
-    }
-
-    /**
-     * Get records within date range
-     */
-    public function getByDateRange(string $dateField, string $startDate, string $endDate): Collection
-    {
-        return $this->model
-            ->whereBetween($dateField, [$startDate, $endDate])
-            ->get();
-    }
-
-    /**
-     * Get records with relationships
-     */
-    public function getWithRelations(array $relations): Collection
-    {
-        return $this->model->with($relations)->get();
-    }
-
-    /**
-     * Apply scopes dynamically
-     */
-    public function applyScopes(array $scopes): Builder
-    {
-        $query = $this->model->newQuery();
-        
-        foreach ($scopes as $scope => $parameters) {
-            if (is_numeric($scope)) {
-                // Simple scope without parameters
-                $query->{$parameters}();
-            } else {
-                // Scope with parameters
-                $query->{$scope}($parameters);
+            // Handle range filters (field_from, field_to)
+            if (str_ends_with($field, '_from')) {
+                $actualField = str_replace('_from', '', $field);
+                $query->where($actualField, '>=', $value);
+                continue;
             }
-        }
-        
-        return $query;
-    }
 
-    /**
-     * Update multiple records by conditions
-     */
-    public function updateWhere(array $conditions, array $data): int
-    {
-        $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
-            if (is_array($value)) {
-                $query->whereIn($field, $value);
-            } else {
-                $query->where($field, $value);
+            if (str_ends_with($field, '_to')) {
+                $actualField = str_replace('_to', '', $field);
+                $query->where($actualField, '<=', $value);
+                continue;
             }
-        }
-        
-        return $query->update($data);
-    }
 
-    /**
-     * Delete records by conditions
-     */
-    public function deleteWhere(array $conditions): int
-    {
-        $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
-            if (is_array($value)) {
-                $query->whereIn($field, $value);
-            } else {
-                $query->where($field, $value);
+            // Handle LIKE searches
+            if (str_ends_with($field, '_like')) {
+                $actualField = str_replace('_like', '', $field);
+                $query->where($actualField, 'LIKE', "%{$value}%");
+                continue;
             }
-        }
-        
-        return $query->delete();
-    }
 
-    /**
-     * Check if record exists by conditions
-     */
-    public function existsWhere(array $conditions): bool
-    {
-        $query = $this->model->newQuery();
-        
-        foreach ($conditions as $field => $value) {
+            // Default exact match
             $query->where($field, $value);
         }
-        
-        return $query->exists();
+    }
+
+    /**
+     * Apply sorting to query
+     */
+    protected function applySorting(Builder $query, ?string $sortBy = null, string $sortDirection = 'asc'): void
+    {
+        if ($sortBy && $this->isValidSortField($sortBy)) {
+            $query->orderBy($sortBy, $sortDirection);
+        } else {
+            // Default sorting
+            $query->latest();
+        }
+    }
+
+    /**
+     * Check if field is valid for sorting
+     */
+    protected function isValidSortField(string $field): bool
+    {
+        // Override this method in your repositories to define allowed sort fields
+        return in_array($field, $this->getSortableFields());
+    }
+
+    /**
+     * Get sortable fields - should be overridden in repositories
+     */
+    protected function getSortableFields(): array
+    {
+        return ['id', 'created_at', 'updated_at'];
     }
 }

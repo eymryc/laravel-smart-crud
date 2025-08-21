@@ -1,0 +1,123 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Http\Controllers\Controller;
+use App\Models\{{ model }};
+use App\Services\{{ model }}\{{ model }}Service;
+use App\Http\Requests\Api\{{ version }}\{{ model }}\Store{{ model }}Request;
+use App\Http\Requests\Api\{{ version }}\{{ model }}\Update{{ model }}Request;
+use App\Http\Resources\Api\{{ version }}\{{ model }}\{{ model }}Resource;
+use App\Http\Resources\Api\{{ version }}\{{ model }}\{{ model }}Collection;
+use App\DTOs\{{ model }}\{{ model }}FilterDTO;
+use Rouangni\SmartCrud\Traits\ApiResponseTrait;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+
+class {{ class }} extends Controller
+{
+    use ApiResponseTrait;
+
+    public function __construct(
+        protected {{ model }}Service ${{ modelVariable }}Service
+    ) {}
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $filterDTO = new {{ model }}FilterDTO($request->all());
+            ${{ modelPluralVariable }} = $this->{{ modelVariable }}Service->getAll($filterDTO);
+
+            return $this->successResponse(
+                new {{ model }}Collection(${{ modelPluralVariable }}),
+                '{{ modelPluralTitle }} retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to retrieve {{ modelPluralLower }}',
+                500
+            );
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Store{{ model }}Request $request): JsonResponse
+    {
+        try {
+            ${{ modelVariable }} = $this->{{ modelVariable }}Service->create($request->validated());
+
+            return $this->createdResponse(
+                new {{ model }}Resource(${{ modelVariable }}),
+                '{{ modelTitle }} created successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to create {{ modelLower }}',
+                500
+            );
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        try {
+            return $this->successResponse(
+                new {{ model }}Resource(${{ modelVariable }}),
+                '{{ modelTitle }} retrieved successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to retrieve {{ modelLower }}',
+                500
+            );
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Update{{ model }}Request $request, {{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        try {
+            $updated{{ model }} = $this->{{ modelVariable }}Service->update(${{ modelVariable }}, $request->validated());
+
+            return $this->successResponse(
+                new {{ model }}Resource($updated{{ model }}),
+                '{{ modelTitle }} updated successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to update {{ modelLower }}',
+                500
+            );
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        try {
+            $this->{{ modelVariable }}Service->delete(${{ modelVariable }});
+
+            return $this->successResponse(
+                null,
+                '{{ modelTitle }} deleted successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Failed to delete {{ modelLower }}',
+                500
+            );
+        }
+    }
+}

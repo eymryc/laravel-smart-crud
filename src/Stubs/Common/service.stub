@@ -1,0 +1,118 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\{{ model }};
+use App\Repositories\{{ model }}\Contracts\{{ repositoryInterface }};
+use App\DTOs\{{ model }}\{{ createDTO }};
+use App\DTOs\{{ model }}\{{ updateDTO }};
+use App\DTOs\{{ model }}\{{ filterDTO }};
+use App\Exceptions\{{ model }}\{{ exception }};
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+class {{ class }}
+{
+    public function __construct(
+        protected {{ repositoryInterface }} ${{ repositoryVariable }}
+    ) {}
+
+    /**
+     * Get all {{ modelPluralLower }} with optional filtering
+     */
+    public function getAll({{ filterDTO }} $filterDTO): Collection|LengthAwarePaginator
+    {
+        $filters = $filterDTO->toArray();
+
+        if ($filterDTO->paginate) {
+            return $this->{{ repositoryVariable }}->paginate(
+                $filterDTO->perPage ?? 15,
+                $filters,
+                $filterDTO->relations ?? []
+            );
+        }
+
+        return $this->{{ repositoryVariable }}->all(
+            $filters,
+            $filterDTO->relations ?? []
+        );
+    }
+
+    /**
+     * Find {{ modelLower }} by ID
+     */
+    public function findById(int $id, array $relations = []): {{ model }}
+    {
+        ${{ modelVariable }} = $this->{{ repositoryVariable }}->find($id, $relations);
+
+        if (!${{ modelVariable }}) {
+            throw new {{ exception }}("{{ modelTitle }} not found with ID: {$id}");
+        }
+
+        return ${{ modelVariable }};
+    }
+
+    /**
+     * Create new {{ modelLower }}
+     */
+    public function create(array $data): {{ model }}
+    {
+        $createDTO = new {{ createDTO }}($data);
+        
+        try {
+            return $this->{{ repositoryVariable }}->create($createDTO->toArray());
+        } catch (\Exception $e) {
+            throw new {{ exception }}("Failed to create {{ modelLower }}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update existing {{ modelLower }}
+     */
+    public function update({{ model }} ${{ modelVariable }}, array $data): {{ model }}
+    {
+        $updateDTO = new {{ updateDTO }}($data);
+        
+        try {
+            return $this->{{ repositoryVariable }}->update(${{ modelVariable }}, $updateDTO->toArray());
+        } catch (\Exception $e) {
+            throw new {{ exception }}("Failed to update {{ modelLower }}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete {{ modelLower }}
+     */
+    public function delete({{ model }} ${{ modelVariable }}): bool
+    {
+        try {
+            return $this->{{ repositoryVariable }}->delete(${{ modelVariable }});
+        } catch (\Exception $e) {
+            throw new {{ exception }}("Failed to delete {{ modelLower }}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if {{ modelLower }} exists
+     */
+    public function exists(array $criteria): bool
+    {
+        return $this->{{ repositoryVariable }}->exists($criteria);
+    }
+
+    /**
+     * Get {{ modelPluralLower }} count
+     */
+    public function count(array $filters = []): int
+    {
+        return $this->{{ repositoryVariable }}->count($filters);
+    }
+
+    /**
+     * Find {{ modelPluralLower }} by specific field
+     */
+    public function findBy(string $field, $value, array $relations = []): Collection
+    {
+        return $this->{{ repositoryVariable }}->findBy($field, $value, $relations);
+    }
+}

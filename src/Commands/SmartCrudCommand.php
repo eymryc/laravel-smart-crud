@@ -4,199 +4,376 @@ namespace Rouangni\SmartCrud\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Artisan;
-use Rouangni\SmartCrud\SmartCrudGenerator;
+use Rouangni\SmartCrud\Generators\ApiCrudGenerator;
+use Rouangni\SmartCrud\Generators\WebCrudGenerator;
+use Rouangni\SmartCrud\Generators\CommonGenerator;
+use Rouangni\SmartCrud\Exceptions\SmartCrudException;
 
 class SmartCrudCommand extends Command
 {
-    protected $signature = 'make:smart-crud 
-                            {name : The name of the resource}
-                            {--force : Overwrite existing files}
-                            {--no-migration : Do not create migration}
-                            {--no-factory : Do not create factory}
-                            {--no-seeder : Do not create seeder}
-                            {--no-routes : Do not register routes}';
+   /**
+    * The name and signature of the console command.
+    */
+   protected $signature = 'make:smart-crud 
+                           {model : The model name}
+                           {--api : Generate API CRUD}
+                           {--web : Generate Web CRUD}
+                           {--version=V1 : API version (default: V1)}
+                           {--force : Overwrite existing files}
+                           {--skip-common : Skip common files (Service, Repository, etc.)}
+                           {--skip-routes : Skip route generation}
+                           {--skip-views : Skip view generation (Web only)}
+                           {--dry-run : Show what would be generated without creating files}';
 
-    protected $description = 'Generate intelligent CRUD based on database structure';
+   /**
+    * The console command description.
+    */
+   protected $description = 'Generate a complete CRUD with API/Web options and organized namespacing';
 
-    private SmartCrudGenerator $generator;
+   protected ApiCrudGenerator $apiGenerator;
+   protected WebCrudGenerator $webGenerator;
+   protected CommonGenerator $commonGenerator;
 
-    public function __construct(SmartCrudGenerator $generator)
-    {
-        parent::__construct();
-        $this->generator = $generator;
-    }
+   public function __construct(
+      ApiCrudGenerator $apiGenerator,
+      WebCrudGenerator $webGenerator,
+      CommonGenerator $commonGenerator
+   ) {
+      parent::__construct();
 
-    public function handle(): int
-    {
-        $name = $this->argument('name');
-        $options = $this->getCrudOptions();
+      $this->apiGenerator = $apiGenerator;
+      $this->webGenerator = $webGenerator;
+      $this->commonGenerator = $commonGenerator;
+   }
 
-        $this->info("🚀 Generating Smart CRUD for: {$name}");
-        $this->newLine();
+   /**
+    * Execute the console command.
+    */
+   public function handle(): int
+   {
+      try {
+         $model = $this->argument('model');
+         $options = $this->getOptions();
 
-        try {
-            // Generate basic Laravel files first if needed
-            if (!$options['no-migration'] || !$options['no-factory'] || !$options['no-seeder']) {
-                $this->generateBasicFiles($name, $options);
-            }
+         // Validation
+         if (!$options['api'] && !$options['web']) {
+            $this->error('You must specify either --api or --web option (or both).');
+            return self::FAILURE;
+         }
 
-            // Run migration if needed
-            if (!$options['no-migration']) {
-                $this->runMigration();
-            }
+         $this->displayHeader($model, $options);
 
-            // Generate smart CRUD files
-            $this->info("📝 Generating smart CRUD files...");
-            $generatedFiles = $this->generator->generate($name, $options);
+         if ($options['dry_run']) {
+            return $this->performDryRun($model, $options);
+         }
 
-            // Display success message
-            $this->displaySuccess($name, $generatedFiles);
+         // Generate files
+         $results = $this->generateFiles($model, $options);
 
-            return 0;
+         // Display results
+         $this->displayResults($results);
+         $this->showNextSteps($model, $options);
 
-        } catch (\Exception $e) {
-            $this->error("❌ Error: " . $e->getMessage());
-            $this->error("Stack trace: " . $e->getTraceAsString());
-            return 1;
-        }
-    }
+         return self::SUCCESS;
+      } catch (SmartCrudException $e) {
+         $this->error($e->getMessage());
+         return self::FAILURE;
+      } catch (\Exception $e) {
+         $this->error('An unexpected error occurred: ' . $e->getMessage());
+         return self::FAILURE;
+      }
+   }
 
-    private function getCrudOptions(): array
-    {
-        return [
-            'force' => $this->option('force'),
-            'no-migration' => $this->option('no-migration'),
-            'no-factory' => $this->option('no-factory'),
-            'no-seeder' => $this->option('no-seeder'),
-            'no-routes' => $this->option('no-routes'),
-        ];
-    }
+   /**
+    * Get processed options
+    */
+   protected function getOptions(): array
+   {
+      return [
+         'api' => $this->option('api'),
+         'web' => $this->option('web'),
+         'version' => $this->option('version') ?: config('smart-crud.default_api_version', 'V1'),
+         'force' => $this->option('force'),
+         'skip_common' => $this->option('skip-common'),
+         'skip_routes' => $this->option('skip-routes'),
+         'skip_views' => $this->option('skip-views'),
+         'dry_run' => $this->option('dry-run'),
+      ];
+   }
 
-    private function generateBasicFiles(string $name, array $options): void
-    {
-        $this->info("📁 Generating basic Laravel files...");
+   /**
+    * Display command header
+    */
+   protected function displayHeader(string $model, array $options): void
+   {
+      $this->info("🚀 Generating Smart CRUD for: <comment>{$model}</comment>");
 
-        $modelOptions = ['name' => $name];
-        
-        if (!$options['no-migration']) {
-            $modelOptions['--migration'] = true;
-        }
-        
-        if (!$options['no-factory']) {
-            $modelOptions['--factory'] = true;
-        }
-        
-        if (!$options['no-seeder']) {
-            $modelOptions['--seed'] = true;
-        }
+      $types = [];
+      if ($options['api']) {
+         $types[] = "API ({$options['version']})";
+      }
+      if ($options['web']) {
+         $types[] = "Web";
+      }
 
-        $this->call('make:model', $modelOptions);
-    }
+      $this->line("📦 Types: " . implode(', ', $types));
+      $this->newLine();
+   }
 
-    private function runMigration(): void
-    {
-        if ($this->confirm('Run migration now? (Recommended)', true)) {
-            $this->info("🔄 Running migration...");
-            $this->call('migrate');
-        } else {
-            $this->warn("⚠️  Please run migration manually before using the generated CRUD");
-        }
-    }
+   /**
+    * Perform dry run - show what would be generated
+    */
+   protected function performDryRun(string $model, array $options): int
+   {
+      $this->warn('🔍 DRY RUN - No files will be created');
+      $this->newLine();
 
-    private function displaySuccess(string $name, array $generatedFiles): void
-    {
-        $this->newLine();
-        $this->info("✅ Smart CRUD generated successfully for: {$name}");
-        $this->newLine();
+      $files = $this->getFilesToGenerate($model, $options);
 
-        $this->comment("📁 Generated files:");
-        
-        if (isset($generatedFiles['controller'])) {
-            $this->line("   • Controller: " . $this->getRelativePath($generatedFiles['controller']));
-        }
-        
-        if (isset($generatedFiles['service'])) {
-            $this->line("   • Service: " . $this->getRelativePath($generatedFiles['service']));
-        }
-        
-        if (isset($generatedFiles['repository'])) {
-            $this->line("   • Repository: " . $this->getRelativePath($generatedFiles['repository']));
-        }
-        
-        if (isset($generatedFiles['repository_interface'])) {
-            $this->line("   • Repository Interface: " . $this->getRelativePath($generatedFiles['repository_interface']));
-        }
-        
-        if (isset($generatedFiles['dtos'])) {
-            foreach ($generatedFiles['dtos'] as $type => $path) {
-                $this->line("   • DTO ({$type}): " . $this->getRelativePath($path));
-            }
-        }
-        
-        if (isset($generatedFiles['requests'])) {
-            foreach ($generatedFiles['requests'] as $type => $path) {
-                $this->line("   • Request ({$type}): " . $this->getRelativePath($path));
-            }
-        }
-        
-        if (isset($generatedFiles['resources'])) {
-            foreach ($generatedFiles['resources'] as $type => $path) {
-                $this->line("   • Resource ({$type}): " . $this->getRelativePath($path));
-            }
-        }
-        
-        if (isset($generatedFiles['exception'])) {
-            $this->line("   • Exception: " . $this->getRelativePath($generatedFiles['exception']));
-        }
+      foreach ($files as $category => $categoryFiles) {
+         $this->line("<info>{$category}:</info>");
+         foreach ($categoryFiles as $file) {
+            $this->line("  📄 {$file}");
+         }
+         $this->newLine();
+      }
 
-        $this->newLine();
-        $this->comment("🔧 Next steps:");
-        
-        if (!$this->option('no-migration')) {
-            $this->line("1. ✅ Migration already run");
-        } else {
-            $this->line("1. Run: php artisan migrate");
-        }
-        
-        $this->line("2. Register repository binding in a Service Provider:");
-        $this->line("   \$this->app->bind(");
-        $this->line("       \\App\\Repositories\\Contracts\\{$name}RepositoryInterface::class,");
-        $this->line("       \\App\\Repositories\\{$name}Repository::class");
-        $this->line("   );");
-        
-        $this->newLine();
-        $this->comment("🚀 API Endpoints:");
-        $tableName = Str::snake(Str::plural($name));
-        $this->line("   GET    /api/{$tableName}      - List with filters");
-        $this->line("   POST   /api/{$tableName}      - Create new");
-        $this->line("   GET    /api/{$tableName}/{id} - Show specific");
-        $this->line("   PUT    /api/{$tableName}/{id} - Update");
-        $this->line("   DELETE /api/{$tableName}/{id} - Delete");
-        
-        $this->newLine();
-        $this->comment("📖 Usage examples:");
-        $this->line("   # List with search");
-        $this->line("   GET /api/{$tableName}?search=keyword&sort_by=created_at&sort_direction=desc");
-        $this->line("   ");
-        $this->line("   # Create new");
-        $this->line("   POST /api/{$tableName} + JSON body");
-        
-        $this->newLine();
-        $this->comment("📋 Response format:");
-        $this->line('   {');
-        $this->line('     "success": true,');
-        $this->line('     "message": "Operation successful",');
-        $this->line('     "data": {...},');
-        $this->line('     "status": 200');
-        $this->line('   }');
+      $this->info('💡 Run without --dry-run to generate these files');
+      return self::SUCCESS;
+   }
 
-        $this->newLine();
-        $this->info("🎉 Your CRUD is ready to use!");
-    }
+   /**
+    * Get list of files that would be generated
+    */
+   protected function getFilesToGenerate(string $model, array $options): array
+   {
+      $files = [];
 
-    private function getRelativePath(string $path): string
-    {
-        return str_replace(base_path() . '/', '', $path);
-    }
+      // Common files
+      if (!$options['skip_common']) {
+         $files['Common Files'] = [
+            "app/Services/{$model}/{$model}Service.php",
+            "app/Repositories/{$model}/{$model}Repository.php",
+            "app/Repositories/{$model}/Contracts/{$model}RepositoryInterface.php",
+            "app/DTOs/{$model}/{$model}CreateDTO.php",
+            "app/DTOs/{$model}/{$model}UpdateDTO.php",
+            "app/DTOs/{$model}/{$model}FilterDTO.php",
+            "app/Exceptions/{$model}/{$model}Exception.php",
+         ];
+      }
+
+      // API files
+      if ($options['api']) {
+         $version = $options['version'];
+         $files["API Files ({$version})"] = [
+            "app/Http/Controllers/Api/{$version}/{$model}/{$model}Controller.php",
+            "app/Http/Requests/Api/{$version}/{$model}/Store{$model}Request.php",
+            "app/Http/Requests/Api/{$version}/{$model}/Update{$model}Request.php",
+            "app/Http/Resources/Api/{$version}/{$model}/{$model}Resource.php",
+            "app/Http/Resources/Api/{$version}/{$model}/{$model}Collection.php",
+         ];
+
+         if (!$options['skip_routes']) {
+            $files["API Files ({$version})"][] = "routes/api/{$version}/" . Str::kebab($model) . ".php";
+         }
+      }
+
+      // Web files
+      if ($options['web']) {
+         $files['Web Files'] = [
+            "app/Http/Controllers/Web/{$model}/{$model}Controller.php",
+            "app/Http/Requests/Web/{$model}/Store{$model}Request.php",
+            "app/Http/Requests/Web/{$model}/Update{$model}Request.php",
+         ];
+
+         if (!$options['skip_views']) {
+            $modelKebab = Str::kebab(Str::plural($model));
+            $files['Web Files'] = array_merge($files['Web Files'], [
+               "resources/views/{$modelKebab}/index.blade.php",
+               "resources/views/{$modelKebab}/create.blade.php",
+               "resources/views/{$modelKebab}/edit.blade.php",
+               "resources/views/{$modelKebab}/show.blade.php",
+            ]);
+         }
+
+         if (!$options['skip_routes']) {
+            $files['Web Files'][] = "routes/web/" . Str::kebab($model) . ".php";
+         }
+      }
+
+      return $files;
+   }
+
+   /**
+    * Generate all files
+    */
+   protected function generateFiles(string $model, array $options): array
+   {
+      $results = [
+         'common' => [],
+         'api' => [],
+         'web' => [],
+      ];
+
+      // Generate common files
+      if (!$options['skip_common']) {
+         $this->info('📁 Generating common files...');
+         $results['common'] = $this->generateCommonFiles($model, $options);
+      }
+
+      // Generate API files
+      if ($options['api']) {
+         $this->info("🔌 Generating API files ({$options['version']})...");
+         $results['api'] = $this->generateApiFiles($model, $options);
+      }
+
+      // Generate Web files
+      if ($options['web']) {
+         $this->info('🌐 Generating Web files...');
+         $results['web'] = $this->generateWebFiles($model, $options);
+      }
+
+      return $results;
+   }
+
+   /**
+    * Generate common files
+    */
+   protected function generateCommonFiles(string $model, array $options): array
+   {
+      $results = [];
+      $types = ['Service', 'Repository', 'RepositoryInterface', 'CreateDTO', 'UpdateDTO', 'FilterDTO', 'Exception'];
+
+      foreach ($types as $type) {
+         try {
+            $generated = $this->commonGenerator->generate($model, $type, $options);
+            $results[$type] = $generated ? 'created' : 'skipped';
+         } catch (\Exception $e) {
+            $results[$type] = 'failed: ' . $e->getMessage();
+            $this->error("Failed to generate {$type}: " . $e->getMessage());
+         }
+      }
+
+      return $results;
+   }
+
+   /**
+    * Generate API files
+    */
+   protected function generateApiFiles(string $model, array $options): array
+   {
+      $results = [];
+      $types = ['Controller', 'StoreRequest', 'UpdateRequest', 'Resource', 'Collection'];
+
+      if (!$options['skip_routes']) {
+         $types[] = 'Routes';
+      }
+
+      foreach ($types as $type) {
+         try {
+            $generated = $this->apiGenerator->generate($model, $type, $options);
+            $results[$type] = $generated ? 'created' : 'skipped';
+         } catch (\Exception $e) {
+            $results[$type] = 'failed: ' . $e->getMessage();
+            $this->error("Failed to generate API {$type}: " . $e->getMessage());
+         }
+      }
+
+      return $results;
+   }
+
+   /**
+    * Generate Web files
+    */
+   protected function generateWebFiles(string $model, array $options): array
+   {
+      $results = [];
+      $types = ['Controller', 'StoreRequest', 'UpdateRequest'];
+
+      if (!$options['skip_views']) {
+         $types[] = 'Views';
+      }
+
+      if (!$options['skip_routes']) {
+         $types[] = 'Routes';
+      }
+
+      foreach ($types as $type) {
+         try {
+            $generated = $this->webGenerator->generate($model, $type, $options);
+            $results[$type] = $generated ? 'created' : 'skipped';
+         } catch (\Exception $e) {
+            $results[$type] = 'failed: ' . $e->getMessage();
+            $this->error("Failed to generate Web {$type}: " . $e->getMessage());
+         }
+      }
+
+      return $results;
+   }
+
+   /**
+    * Display generation results
+    */
+   protected function displayResults(array $results): void
+   {
+      $this->newLine();
+      $this->info('📋 Generation Results:');
+
+      foreach ($results as $category => $categoryResults) {
+         if (empty($categoryResults)) {
+            continue;
+         }
+
+         $this->line("<comment>" . ucfirst($category) . " Files:</comment>");
+
+         foreach ($categoryResults as $type => $status) {
+            $icon = match ($status) {
+               'created' => '✅',
+               'skipped' => '⏭️',
+               default => '❌'
+            };
+
+            $this->line("  {$icon} {$type}: {$status}");
+         }
+
+         $this->newLine();
+      }
+   }
+
+   /**
+    * Show next steps
+    */
+   protected function showNextSteps(string $model, array $options): void
+   {
+      $this->info('🎯 Next steps:');
+
+      $steps = [
+         '1. Run migrations if needed',
+         '2. Register routes in your RouteServiceProvider',
+      ];
+
+      if ($options['api']) {
+         $version = strtolower($options['version']);
+         $modelKebab = Str::kebab(Str::plural($model));
+         $steps[] = "3. API endpoints available at: /api/{$version}/{$modelKebab}";
+      }
+
+      if ($options['web']) {
+         $modelKebab = Str::kebab(Str::plural($model));
+         $steps[] = "3. Web routes available at: /{$modelKebab}";
+      }
+
+      $steps = array_merge($steps, [
+         '4. Configure database relationships in generated files',
+         '5. Customize validation rules in Request classes',
+         '6. Update Resource/Collection classes for API responses',
+      ]);
+
+      foreach ($steps as $step) {
+         $this->line("  {$step}");
+      }
+
+      $this->newLine();
+      $this->info('🎉 Smart CRUD generation completed successfully!');
+   }
 }

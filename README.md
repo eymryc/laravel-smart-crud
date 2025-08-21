@@ -1,46 +1,20 @@
-# Laravel Smart CRUD Generator
+# Laravel Smart CRUD
 
-<div align="center">
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/rouangni/laravel-smart-crud.svg?style=flat-square)](https://packagist.org/packages/rouangni/laravel-smart-crud)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Total Downloads](https://img.shields.io/packagist/dt/rouangni/laravel-smart-crud.svg?style=flat-square)](https://packagist.org/packages/rouangni/laravel-smart-crud)
 
-![Laravel Smart CRUD](https://img.shields.io/badge/Laravel-Smart%20CRUD-red?style=for-the-badge&logo=laravel)
-![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-blue?style=for-the-badge&logo=php)
-![Laravel Version](https://img.shields.io/badge/Laravel-10%2B-red?style=for-the-badge&logo=laravel)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+Un package Laravel moderne pour générer automatiquement des opérations CRUD complètes avec séparation API/Web et organisation par espaces de noms.
 
-🚀 **Intelligent CRUD generator for Laravel that analyzes your database structure and generates complete, production-ready API resources.**
+## ✨ Fonctionnalités
 
-[Installation](#installation) • [Quick Start](#quick-start) • [Features](#features) • [Documentation](#documentation) • [Examples](#examples)
-
-</div>
-
-## ✨ Features
-
-✅ **Intelligent Database Analysis** - Automatically analyzes your database schema  
-✅ **Complete CRUD Generation** - Models, Controllers, Services, Repositories, DTOs  
-✅ **API-First Design** - Standardized JSON API responses  
-✅ **Repository Pattern** - Clean architecture with dependency injection  
-✅ **Smart Validation** - Auto-generates validation rules based on database schema  
-✅ **Search & Filtering** - Built-in search and sorting capabilities  
-✅ **Exception Handling** - Proper error handling and custom exceptions  
-✅ **Highly Configurable** - Customize everything via configuration file  
-✅ **Type Safety** - Full PHP 8.1+ type declarations  
-✅ **Best Practices** - Follows Laravel and PHP best practices
-
-## 🎯 What Problem Does It Solve?
-
-Building CRUD operations in Laravel is repetitive and time-consuming. You need to create:
-
-- Models with relationships
-- Controllers with proper validation
-- Request classes with rules
-- Resource classes for API responses
-- Service layers for business logic
-- Repository pattern for data access
-- DTOs for type safety
-- Exception handling
-- Route registration
-
-**Smart CRUD does all of this in 30 seconds** by analyzing your database structure!
+- 🚀 **Génération rapide** de CRUD complets
+- 🔄 **Séparation API/Web** avec espaces de noms dédiés
+- 📁 **Organisation par entité** - chaque modèle dans son propre dossier
+- 🎯 **Architecture moderne** avec Services, Repositories, DTOs
+- 🔧 **Configurable** - personnalisez stubs et configurations
+- 📊 **Support du versioning API** (V1, V2, etc.)
+- 🎨 **Templates personnalisables** via publication des stubs
 
 ## 📦 Installation
 
@@ -48,480 +22,436 @@ Building CRUD operations in Laravel is repetitive and time-consuming. You need t
 composer require rouangni/laravel-smart-crud
 ```
 
-The package will be auto-discovered by Laravel. No additional setup required!
-
-### Optional: Publish Configuration
+### Publication des configurations (optionnel)
 
 ```bash
+# Publier la configuration
 php artisan vendor:publish --tag=smart-crud-config
-```
 
-### Optional: Publish Stubs for Customization
-
-```bash
+# Publier les stubs pour personnalisation
 php artisan vendor:publish --tag=smart-crud-stubs
 ```
 
-## 🚀 Quick Start
+## 🚀 Utilisation
 
-### 1. Create Your Migration
-
-```php
-// database/migrations/create_posts_table.php
-Schema::create('posts', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->text('content');
-    $table->string('status')->default('draft');
-    $table->boolean('is_published')->default(false);
-    $table->timestamp('published_at')->nullable();
-    $table->timestamps();
-});
-```
-
-### 2. Generate Complete CRUD
+### Commande de base
 
 ```bash
-php artisan make:smart-crud Post
+php artisan make:smart-crud {Model} [options]
 ```
 
-### 3. That's It! 🎉
+### Options disponibles
 
-You now have a complete API with:
+| Option | Description |
+|--------|-------------|
+| `--api` | Génère les fichiers API |
+| `--web` | Génère les fichiers Web |
+| `--version=V1` | Spécifie la version API (défaut: V1) |
+| `--force` | Écrase les fichiers existants |
+| `--skip-common` | Ignore les fichiers communs (Service, Repository, etc.) |
+| `--skip-routes` | Ignore la génération des routes |
+| `--skip-views` | Ignore la génération des vues (Web uniquement) |
+| `--dry-run` | Affiche ce qui sera généré sans créer les fichiers |
 
-- Full CRUD operations
-- Smart validation
-- Search and filtering
-- Proper error handling
-- Standardized responses
+### Exemples d'utilisation
 
-## 📁 What Gets Generated
+```bash
+# Génération API uniquement
+php artisan make:smart-crud Product --api
 
-When you run `php artisan make:smart-crud Post`, you get:
+# Génération Web uniquement  
+php artisan make:smart-crud Product --web
+
+# Génération API + Web
+php artisan make:smart-crud Product --api --web
+
+# Avec version API spécifique
+php artisan make:smart-crud Product --api --version=V2
+
+# Prévisualisation sans génération
+php artisan make:smart-crud Product --api --dry-run
+
+# Forcer la régénération
+php artisan make:smart-crud Product --api --force
+
+# Ignorer les fichiers communs (si déjà existants)
+php artisan make:smart-crud Product --api --skip-common
+```
+
+## 📁 Structure générée
+
+### Pour `Product` avec `--api`
 
 ```
-app/
+App/
 ├── Http/
 │   ├── Controllers/
-│   │   └── PostController.php              # Complete API controller
+│   │   └── Api/
+│   │       └── V1/
+│   │           └── Product/
+│   │               └── ProductController.php
 │   ├── Requests/
-│   │   ├── StorePostRequest.php           # Validation for creating
-│   │   └── UpdatePostRequest.php          # Validation for updating
+│   │   └── Api/
+│   │       └── V1/
+│   │           └── Product/
+│   │               ├── StoreProductRequest.php
+│   │               └── UpdateProductRequest.php
 │   └── Resources/
-│       ├── PostResource.php               # Single resource transformation
-│       └── PostCollection.php             # Collection transformation
+│       └── Api/
+│           └── V1/
+│               └── Product/
+│                   ├── ProductResource.php
+│                   └── ProductCollection.php
 ├── Services/
-│   └── PostService.php                    # Business logic layer
+│   └── Product/
+│       └── ProductService.php
 ├── Repositories/
-│   ├── Contracts/
-│   │   └── PostRepositoryInterface.php    # Repository contract
-│   └── PostRepository.php                 # Data access layer
+│   └── Product/
+│       ├── ProductRepository.php
+│       └── Contracts/
+│           └── ProductRepositoryInterface.php
 ├── DTOs/
-│   ├── CreatePostDTO.php                  # Type-safe create data
-│   ├── UpdatePostDTO.php                  # Type-safe update data
-│   └── PostFilterDTO.php                  # Type-safe filter data
+│   └── Product/
+│       ├── ProductCreateDTO.php
+│       ├── ProductUpdateDTO.php
+│       └── ProductFilterDTO.php
 └── Exceptions/
-    └── PostNotFoundException.php          # Custom exception
-
-Routes automatically registered in routes/api.php
+    └── Product/
+        └── ProductException.php
 ```
 
-## 🔥 API Endpoints
+### Pour `Product` avec `--web`
 
-All endpoints are automatically registered:
-
-| Method   | Endpoint          | Description                                       |
-| -------- | ----------------- | ------------------------------------------------- |
-| `GET`    | `/api/posts`      | List posts with filtering, search, and pagination |
-| `POST`   | `/api/posts`      | Create a new post                                 |
-| `GET`    | `/api/posts/{id}` | Get a specific post                               |
-| `PUT`    | `/api/posts/{id}` | Update a post                                     |
-| `DELETE` | `/api/posts/{id}` | Delete a post                                     |
-
-## 📡 API Response Format
-
-All responses follow a consistent, standardized format:
-
-### Success Response
-
-```json
-{
-  "success": true,
-  "message": "Posts retrieved successfully",
-  "data": {
-    "data": [
-      {
-        "id": 1,
-        "title": "My First Post",
-        "content": "This is the content...",
-        "status": "published",
-        "is_published": true,
-        "published_at": "2025-01-15 10:30:00",
-        "created_at": "2025-01-15 09:00:00",
-        "updated_at": "2025-01-15 10:30:00"
-      }
-    ],
-    "pagination": {
-      "current_page": 1,
-      "last_page": 5,
-      "per_page": 15,
-      "total": 67,
-      "from": 1,
-      "to": 15
-    }
-  },
-  "status": 200
-}
+```
+App/
+├── Http/
+│   ├── Controllers/
+│   │   └── Web/
+│   │       └── Product/
+│   │           └── ProductController.php
+│   └── Requests/
+│       └── Web/
+│           └── Product/
+│               ├── StoreProductRequest.php
+│               └── UpdateProductRequest.php
+└── resources/
+    └── views/
+        └── products/
+            ├── index.blade.php
+            ├── create.blade.php
+            ├── edit.blade.php
+            └── show.blade.php
 ```
 
-### Error Response
+## 🎯 Fonctionnalités détaillées
 
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": {
-    "title": ["The title field is required."],
-    "content": ["The content field is required."]
-  },
-  "status": 422
-}
+### 1. **Contrôleurs intelligents**
+
+Les contrôleurs générés incluent :
+- ✅ Gestion d'erreurs complète
+- ✅ Injection de dépendances
+- ✅ Responses API standardisées
+- ✅ Validation automatique
+- ✅ Documentation inline
+
+### 2. **Architecture en couches**
+
+```
+Controller → Service → Repository → Model
+     ↓         ↓         ↓
+   Request   DTO     Interface
 ```
 
-## 🔍 Advanced Usage
+### 3. **DTOs (Data Transfer Objects)**
 
-### Filtering and Search
+- **CreateDTO** : Validation et transformation des données de création
+- **UpdateDTO** : Validation et transformation des données de modification  
+- **FilterDTO** : Gestion des filtres de recherche et pagination
 
-```bash
-# Search in multiple fields
-GET /api/posts?search=laravel
+### 4. **Traits utiles inclus**
 
-# Sort results
-GET /api/posts?sort_by=created_at&sort_direction=desc
-
-# Pagination
-GET /api/posts?per_page=25
-
-# Combine filters
-GET /api/posts?search=php&sort_by=title&per_page=10&sort_direction=asc
+#### ApiResponseTrait
+```php
+// Responses standardisées
+$this->successResponse($data, 'Message');
+$this->errorResponse('Error', 400);
+$this->createdResponse($data);
+$this->notFoundResponse();
 ```
 
-### Command Options
-
-```bash
-# Force overwrite existing files
-php artisan make:smart-crud Post --force
-
-# Skip migration creation
-php artisan make:smart-crud Post --no-migration
-
-# Skip factory and seeder
-php artisan make:smart-crud Post --no-factory --no-seeder
-
-# Skip route registration
-php artisan make:smart-crud Post --no-routes
+#### BaseRepositoryTrait
+```php
+// Méthodes de base pour tous les repositories
+$repository->all($filters, $relations);
+$repository->paginate(15, $filters);
+$repository->findBy('status', 'active');
 ```
 
 ## ⚙️ Configuration
 
-The package is highly configurable. Publish the config file to customize:
-
-```bash
-php artisan vendor:publish --tag=smart-crud-config
-```
-
-### Key Configuration Options
+Le fichier de configuration `config/smart-crud.php` permet de personnaliser :
 
 ```php
-// config/smart-crud.php
 return [
-    'defaults' => [
-        'pagination' => [
-            'per_page' => 15,
-            'max_per_page' => 100,
+    // Version API par défaut
+    'default_api_version' => 'V1',
+    
+    // Espaces de noms
+    'namespaces' => [
+        'controllers' => [
+            'api' => 'App\\Http\\Controllers\\Api',
+            'web' => 'App\\Http\\Controllers\\Web',
         ],
-        'search' => [
-            'fields' => ['name', 'title', 'description', 'email'],
-        ],
+        // ...
     ],
-
-    'api' => [
-        'messages' => [
-            'created' => 'Resource created successfully',
-            'updated' => 'Resource updated successfully',
-            // Customize all API messages
+    
+    // Chemins de génération
+    'paths' => [
+        'controllers' => [
+            'api' => 'Http/Controllers/Api',
+            'web' => 'Http/Controllers/Web',
         ],
+        // ...
     ],
-
-    'database' => [
-        'searchable_columns' => [
-            'name', 'title', 'description', 'content', 'email'
-        ],
-        'hidden_columns' => [
-            'password', 'remember_token', 'api_token'
+    
+    // Configuration des stubs
+    'stubs' => [
+        'api' => [
+            'controller' => 'Api/controller.api.stub',
+            // ...
         ],
     ],
 ];
 ```
 
-## 🧠 Smart Features
+## 🎨 Personnalisation des templates
 
-### Intelligent Type Detection
-
-The package automatically detects column types and generates appropriate:
-
-- **PHP Types**: `string`, `int`, `float`, `bool`, `Carbon`
-- **Validation Rules**: `required`, `email`, `unique`, `integer`, `boolean`
-- **Default Values**: Based on column nullability and type
-- **Resource Formatting**: Dates formatted, passwords hidden
-
-### Example Migration Analysis
-
-```php
-Schema::create('users', function (Blueprint $table) {
-    $table->id();                          // → int, not fillable
-    $table->string('name');                // → string, required
-    $table->string('email')->unique();     // → string, required, email, unique
-    $table->decimal('salary', 10, 2);      // → float, numeric validation
-    $table->boolean('is_active');          // → bool, boolean validation
-    $table->timestamp('last_login')->nullable(); // → string, nullable
-    $table->timestamps();                  // → not fillable, auto-formatted
-});
-```
-
-**Generated Validation:**
-
-```php
-// StoreUserRequest
-'name' => 'required|string|max:255',
-'email' => 'required|email|unique:users,email',
-'salary' => 'required|numeric',
-'is_active' => 'required|boolean',
-'last_login' => 'nullable|date',
-```
-
-## 🎨 Customization
-
-### Custom Templates
-
-Publish stubs to customize generated code:
-
+1. **Publier les stubs** :
 ```bash
 php artisan vendor:publish --tag=smart-crud-stubs
 ```
 
-Edit templates in `resources/stubs/smart-crud/`:
+2. **Modifier les templates** dans `resources/stubs/smart-crud/`
+
+3. **Variables disponibles dans les stubs** :
+- `{{ model }}` - Nom du modèle (ex: Product)
+- `{{ modelVariable }}` - Variable camelCase (ex: product)
+- `{{ modelPlural }}` - Nom pluriel (ex: Products)
+- `{{ modelKebab }}` - Format kebab-case (ex: product)
+- `{{ namespace }}` - Namespace de la classe
+- `{{ class }}` - Nom de la classe
+
+## 🔌 Intégration dans vos projets
+
+### 1. Enregistrer les routes
+
+Dans `app/Providers/RouteServiceProvider.php` :
 
 ```php
-// resources/stubs/smart-crud/controller.stub
-<?php
+public function boot()
+{
+    // Routes API
+    Route::prefix('api')
+        ->middleware('api')
+        ->group(function () {
+            // Inclure vos routes API générées
+            $this->loadRoutesFrom(base_path('routes/api/v1/product.php'));
+        });
 
-namespace {{ controllerNamespace }};
-
-// Your custom controller template...
+    // Routes Web
+    Route::middleware('web')
+        ->group(function () {
+            // Inclure vos routes Web générées
+            $this->loadRoutesFrom(base_path('routes/web/product.php'));
+        });
+}
 ```
 
-### Repository Binding
+### 2. Lier les interfaces aux implémentations
 
-Add to your `AppServiceProvider` or create a dedicated service provider:
+Dans `app/Providers/AppServiceProvider.php` :
 
 ```php
-// app/Providers/AppServiceProvider.php
-public function register(): void
+public function register()
 {
+    // Lier les repository interfaces
     $this->app->bind(
-        \App\Repositories\Contracts\PostRepositoryInterface::class,
-        \App\Repositories\PostRepository::class
+        \App\Repositories\Product\Contracts\ProductRepositoryInterface::class,
+        \App\Repositories\Product\ProductRepository::class
     );
 }
 ```
 
-## 🧪 Testing
+### 3. Configurer les models
 
-The generated code is fully testable. Example:
+Assurez-vous que vos models utilisent les traits appropriés :
 
 ```php
-// tests/Feature/PostControllerTest.php
-class PostControllerTest extends TestCase
+use App\Models\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Product extends Model
 {
-    public function test_can_list_posts()
-    {
-        Post::factory()->count(3)->create();
+    use HasFactory;
 
-        $response = $this->getJson('/api/posts');
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        // ... autres champs
+    ];
 
-        $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'data' => [
-                         'data' => [
-                             '*' => ['id', 'title', 'content']
-                         ],
-                         'pagination'
-                     ]
-                 ]);
-    }
-
-    public function test_can_create_post()
-    {
-        $data = [
-            'title' => 'Test Post',
-            'content' => 'Test content',
-            'status' => 'draft'
-        ];
-
-        $response = $this->postJson('/api/posts', $data);
-
-        $response->assertStatus(201)
-                 ->assertJson([
-                     'success' => true,
-                     'message' => 'Resource created successfully'
-                 ]);
-
-        $this->assertDatabaseHas('posts', $data);
-    }
+    protected $casts = [
+        'price' => 'decimal:2',
+        // ... autres casts
+    ];
 }
 ```
 
-## 🚨 Requirements
+## 🚦 Endpoints générés
 
-- PHP 8.1 or higher
-- Laravel 10.0 or higher
-- MySQL, PostgreSQL, SQLite, or SQL Server
+### API Endpoints (exemple pour Product)
 
-## 🤝 Contributing
+```
+GET    /api/v1/products         # Liste des produits
+POST   /api/v1/products         # Créer un produit
+GET    /api/v1/products/{id}    # Afficher un produit
+PUT    /api/v1/products/{id}    # Modifier un produit
+DELETE /api/v1/products/{id}    # Supprimer un produit
+```
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+### Web Routes (exemple pour Product)
 
-### Development Setup
+```
+GET    /products                # Liste des produits
+GET    /products/create         # Formulaire de création
+POST   /products                # Créer un produit
+GET    /products/{id}           # Afficher un produit
+GET    /products/{id}/edit      # Formulaire d'édition
+PUT    /products/{id}           # Modifier un produit
+DELETE /products/{id}           # Supprimer un produit
+```
+
+## 📝 Exemples d'usage
+
+### Contrôleur API généré
+
+```php
+<?php
+
+namespace App\Http\Controllers\Api\V1\Product;
+
+use App\Http\Controllers\Controller;
+use App\Services\Product\ProductService;
+use Rouangni\SmartCrud\Traits\ApiResponseTrait;
+
+class ProductController extends Controller
+{
+    use ApiResponseTrait;
+
+    public function __construct(
+        protected ProductService $productService
+    ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $filterDTO = new ProductFilterDTO($request->all());
+        $products = $this->productService->getAll($filterDTO);
+
+        return $this->successResponse(
+            new ProductCollection($products),
+            'Products retrieved successfully'
+        );
+    }
+
+    // ... autres méthodes
+}
+```
+
+### Service généré
+
+```php
+<?php
+
+namespace App\Services\Product;
+
+use App\Repositories\Product\Contracts\ProductRepositoryInterface;
+
+class ProductService
+{
+    public function __construct(
+        protected ProductRepositoryInterface $productRepository
+    ) {}
+
+    public function getAll(ProductFilterDTO $filterDTO)
+    {
+        $filters = $filterDTO->toArray();
+
+        if ($filterDTO->paginate) {
+            return $this->productRepository->paginate(
+                $filterDTO->perPage ?? 15,
+                $filters
+            );
+        }
+
+        return $this->productRepository->all($filters);
+    }
+
+    // ... autres méthodes
+}
+```
+
+## 🧪 Tests
+
+Le package inclut des tests complets :
 
 ```bash
-git clone https://github.com/rouangni/laravel-smart-crud.git
-cd laravel-smart-crud
-composer install
+# Lancer les tests
 composer test
+
+# Tests avec couverture
+composer test-coverage
 ```
 
-## 📈 Performance
+## 🤝 Contribution
 
-Smart CRUD generates optimized code:
+Les contributions sont les bienvenues ! Veuillez lire [CONTRIBUTING.md](CONTRIBUTING.md) pour les détails.
 
-- **Repository Pattern** for efficient database queries
-- **Eager Loading** support built-in
-- **Pagination** for large datasets
-- **Caching** ready (via Laravel's cache system)
-- **Index-friendly** search queries
-
-## 🆚 Comparison
-
-| Feature             | Manual CRUD | Laravel Breeze | Smart CRUD   |
-| ------------------- | ----------- | -------------- | ------------ |
-| Generation Time     | 2-4 hours   | 30 minutes     | 30 seconds   |
-| Database Analysis   | Manual      | None           | Automatic    |
-| Validation Rules    | Manual      | Basic          | Smart + Auto |
-| Repository Pattern  | Manual      | None           | Included     |
-| Type Safety (DTOs)  | Manual      | None           | Included     |
-| API Standardization | Manual      | None           | Included     |
-| Search & Filtering  | Manual      | None           | Included     |
-
-## 📚 Examples
-
-### E-commerce Product CRUD
+### Développement local
 
 ```bash
-php artisan make:smart-crud Product
-```
+# Cloner le repository
+git clone https://github.com/rouangni/laravel-smart-crud.git
 
-With this migration:
+# Installer les dépendances
+composer install
 
-```php
-Schema::create('products', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->text('description');
-    $table->decimal('price', 10, 2);
-    $table->integer('stock');
-    $table->string('sku')->unique();
-    $table->boolean('is_active')->default(true);
-    $table->foreignId('category_id')->constrained();
-    $table->timestamps();
-});
-```
-
-You instantly get:
-
-- Product listing with search in name/description
-- Price and stock validation
-- SKU uniqueness validation
-- Category relationship support
-- Active/inactive filtering
-
-### Blog Post Management
-
-```bash
-php artisan make:smart-crud Post
-```
-
-Perfect for content management with automatic:
-
-- Title and content search
-- Publication status filtering
-- Date-based sorting
-- SEO-friendly URLs support
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-**Issue**: "Table doesn't exist" error
-
-```bash
-# Solution: Run migration first
-php artisan migrate
-php artisan make:smart-crud Post --force
-```
-
-**Issue**: Repository binding not found
-
-```php
-// Solution: Add to AppServiceProvider
-$this->app->bind(
-    \App\Repositories\Contracts\PostRepositoryInterface::class,
-    \App\Repositories\PostRepository::class
-);
-```
-
-**Issue**: Validation not working as expected
-
-```bash
-# Solution: Clear cache and regenerate
-php artisan config:clear
-php artisan make:smart-crud Post --force
+# Lancer les tests
+composer test
 ```
 
 ## 📄 License
 
-This package is open-sourced software licensed under the [MIT license](LICENSE).
+Ce package est open-source sous [licence MIT](LICENSE.md).
 
-## 🙏 Credits
+## 🔄 Changelog
 
-- **Rouangni** - Creator and maintainer
-- **Laravel Community** - For the amazing framework
-- **Contributors** - Everyone who helps improve this package
+Voir [CHANGELOG.md](CHANGELOG.md) pour l'historique des versions.
 
-## 📞 Support
+## 💡 Roadmap
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/rouangni/laravel-smart-crud/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/rouangni/laravel-smart-crud/discussions)
-- 📖 **Documentation**: [Wiki](https://github.com/rouangni/laravel-smart-crud/wiki)
+- [ ] Support des relations automatiques
+- [ ] Génération de tests automatiques
+- [ ] Interface graphique pour la configuration
+- [ ] Support des APIs GraphQL
+- [ ] Templates pour différents frameworks CSS
+
+## 🆘 Support
+
+- 📚 [Documentation complète](https://github.com/rouangni/laravel-smart-crud/wiki)
+- 🐛 [Signaler un bug](https://github.com/rouangni/laravel-smart-crud/issues)
+- 💬 [Discussions](https://github.com/rouangni/laravel-smart-crud/discussions)
 
 ---
 
-<div align="center">
-
-**Made with ❤️ for the Laravel community**
-
-[⭐ Star on GitHub](https://github.com/rouangni/laravel-smart-crud) • [🐦 Follow on Twitter](https://twitter.com/rouangni) • [📧 Email](mailto:contact@rouangni.com)
-
-</div>
+Fait avec ❤️ pour la communauté Laravel

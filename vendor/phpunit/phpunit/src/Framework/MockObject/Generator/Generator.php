@@ -1035,9 +1035,9 @@ final class Generator
     /**
      * @psalm-param class-string $classOrInterfaceName
      *
-     * @throws ReflectionException
-     *
      * @psalm-return list<string>
+     *
+     * @throws ReflectionException
      */
     private function namesOfMethodsIn(string $classOrInterfaceName): array
     {
@@ -1056,9 +1056,9 @@ final class Generator
     /**
      * @psalm-param class-string $interfaceName
      *
-     * @throws ReflectionException
-     *
      * @psalm-return list<MockMethod>
+     *
+     * @throws ReflectionException
      */
     private function interfaceMethods(string $interfaceName, bool $cloneArguments): array
     {

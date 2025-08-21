@@ -3,101 +3,171 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Default Settings
+    | Default API Version
     |--------------------------------------------------------------------------
+    |
+    | The default API version to use when generating API CRUD files.
+    |
     */
-    'defaults' => [
-        'pagination' => [
-            'per_page' => 15,
-            'max_per_page' => 100,
+    'default_api_version' => 'V1',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Namespaces
+    |--------------------------------------------------------------------------
+    |
+    | Configure the base namespaces for different file types.
+    |
+    */
+    'namespaces' => [
+        'controllers' => [
+            'api' => 'App\\Http\\Controllers\\Api',
+            'web' => 'App\\Http\\Controllers\\Web',
         ],
-        'search' => [
-            'fields' => ['name', 'title', 'description', 'email'],
-            'min_length' => 3,
+        'requests' => [
+            'api' => 'App\\Http\\Requests\\Api',
+            'web' => 'App\\Http\\Requests\\Web',
         ],
-        'sorting' => [
-            'default_direction' => 'asc',
-            'allowed_directions' => ['asc', 'desc'],
+        'resources' => 'App\\Http\\Resources\\Api',
+        'services' => 'App\\Services',
+        'repositories' => 'App\\Repositories',
+        'dtos' => 'App\\DTOs',
+        'exceptions' => 'App\\Exceptions',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Paths
+    |--------------------------------------------------------------------------
+    |
+    | Configure the base paths for file generation.
+    |
+    */
+    'paths' => [
+        'controllers' => [
+            'api' => 'Http/Controllers/Api',
+            'web' => 'Http/Controllers/Web',
+        ],
+        'requests' => [
+            'api' => 'Http/Requests/Api',
+            'web' => 'Http/Requests/Web',
+        ],
+        'resources' => 'Http/Resources/Api',
+        'services' => 'Services',
+        'repositories' => 'Repositories',
+        'dtos' => 'DTOs',
+        'exceptions' => 'Exceptions',
+        'views' => 'resources/views',
+        'routes' => [
+            'api' => 'routes/api',
+            'web' => 'routes/web',
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | File Generation Settings
+    | Stubs Configuration
     |--------------------------------------------------------------------------
+    |
+    | Configure which stubs to use. You can override the default stubs
+    | by publishing them and modifying the paths here.
+    |
     */
-    'generation' => [
-        'force_overwrite' => false,
-        'backup_existing' => true,
-        'generate_tests' => true,
-        'generate_factory' => true,
-        'generate_seeder' => true,
+    'stubs' => [
+        'api' => [
+            'controller' => 'Api/controller.api.stub',
+            'store_request' => 'Api/request-store.api.stub',
+            'update_request' => 'Api/request-update.api.stub',
+            'resource' => 'Api/resource.api.stub',
+            'collection' => 'Api/collection.api.stub',
+            'routes' => 'Routes/api-routes.stub',
+        ],
+        'web' => [
+            'controller' => 'Web/controller.web.stub',
+            'store_request' => 'Web/request-store.web.stub',
+            'update_request' => 'Web/request-update.web.stub',
+            'view_index' => 'Web/view-index.stub',
+            'view_create' => 'Web/view-create.stub',
+            'view_edit' => 'Web/view-edit.stub',
+            'view_show' => 'Web/view-show.stub',
+            'routes' => 'Routes/web-routes.stub',
+        ],
+        'common' => [
+            'service' => 'Common/service.stub',
+            'repository' => 'Common/repository.stub',
+            'repository_interface' => 'Common/repository-interface.stub',
+            'create_dto' => 'Common/dto-create.stub',
+            'update_dto' => 'Common/dto-update.stub',
+            'filter_dto' => 'Common/dto-filter.stub',
+            'exception' => 'Common/exception.stub',
+        ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | API Response Format
+    | Generation Options
     |--------------------------------------------------------------------------
+    |
+    | Default options for file generation.
+    |
+    */
+    'options' => [
+        'force' => false,
+        'skip_common' => false,
+        'create_routes' => true,
+        'create_views' => true,
+        'organize_by_entity' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File Suffixes
+    |--------------------------------------------------------------------------
+    |
+    | Configure suffixes for generated files.
+    |
+    */
+    'suffixes' => [
+        'controller' => 'Controller',
+        'service' => 'Service',
+        'repository' => 'Repository',
+        'repository_interface' => 'RepositoryInterface',
+        'request' => 'Request',
+        'resource' => 'Resource',
+        'collection' => 'Collection',
+        'dto' => 'DTO',
+        'exception' => 'Exception',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration specific to API generation.
+    |
     */
     'api' => [
-        'format' => [
-            'success_key' => 'success',
-            'message_key' => 'message',
-            'data_key' => 'data',
-            'errors_key' => 'errors',
-            'status_key' => 'status',
-        ],
-        'messages' => [
-            'created' => 'Resource created successfully',
-            'updated' => 'Resource updated successfully',
-            'deleted' => 'Resource deleted successfully',
-            'retrieved' => 'Resource retrieved successfully',
-            'listed' => 'Resources retrieved successfully',
-            'not_found' => 'Resource not found',
-            'validation_failed' => 'Validation failed',
-            'server_error' => 'Internal server error',
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Database Analysis
-    |--------------------------------------------------------------------------
-    */
-    'database' => [
-        'excluded_columns' => [
-            'id', 'created_at', 'updated_at', 'deleted_at', 'password', 
-            'remember_token', 'email_verified_at'
-        ],
-        'searchable_columns' => [
-            'name', 'title', 'description', 'content', 'email', 'slug'
-        ],
-        'hidden_columns' => [
-            'password', 'remember_token', 'api_token'
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Code Generation Templates
-    |--------------------------------------------------------------------------
-    */
-    'templates' => [
-        'namespace_prefix' => 'App',
-        'use_traits' => true,
-        'generate_comments' => true,
-        'strict_types' => true,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Route Generation
-    |--------------------------------------------------------------------------
-    */
-    'routes' => [
-        'auto_register' => true,
-        'prefix' => 'api',
+        'route_prefix' => 'api',
         'middleware' => ['api'],
-        'name_prefix' => 'api.',
+        'response_format' => 'json',
+        'pagination' => true,
+        'versioning' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Web Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration specific to Web generation.
+    |
+    */
+    'web' => [
+        'route_prefix' => '',
+        'middleware' => ['web'],
+        'layout' => 'layouts.app',
+        'pagination' => true,
+        'breadcrumbs' => true,
     ],
 ];
